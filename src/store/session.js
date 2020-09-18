@@ -90,7 +90,7 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
       sessionStore.setAuthenticationToken(event.data);
       break;
     case ActionTypes.SESSION_INITIAL_STATUS_RECEIVED:
-      sessionStore.onInitialStatusReceived({ sessionId: event.sessionId })
+      sessionStore.onInitialStatusReceived({ sessionId: event.data.sessionId });
       break;
 
     case ActionTypes.SESSION_USER_LOGOUT:

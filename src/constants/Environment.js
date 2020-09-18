@@ -1,6 +1,6 @@
 export default {
-  ENDPOINT: "https://node.teocns.com/",
-  ENDPOINT_SOCKET: "wss://node.teocns.com:443",
-  BASE_URL: "https://node.teocns.com",
+  ENDPOINT: "https://api.fyrebet.com/",
+  ENDPOINT_SOCKET: "wss://api.fyrebet.com:443",
+  BASE_URL: "https://api.fyrebet.com",
   DEBUG: true,
 };
