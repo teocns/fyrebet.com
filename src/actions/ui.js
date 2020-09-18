@@ -51,3 +51,10 @@ export function gotoView(VIEW) {
     data: VIEW,
   });
 }
+
+export function openUserProfileModal(userUUID) {
+  dispatcher.dispatch({
+    actionType: ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE,
+    data: { userUUID },
+  });
+}

@@ -17,6 +17,9 @@ import assetUrl from "../helpers/assetUrl";
 
 import { motion, AnimatePresence } from "framer-motion";
 
+import UserAvatarWithActions from "./user/user-avatar";
+import theme from "../themes/fyrebet/fyrebet";
+
 const useStyles = makeStyles((theme) => {
   return {
     root: {
@@ -37,9 +40,10 @@ const useStyles = makeStyles((theme) => {
       color: "#ececec",
     },
     userIcon: {
-      width: "2rem",
-      height: "2rem",
-      minWidth: "2rem",
+      width: 32,
+      height: 32,
+      display: "none",
+      position: "absolute",
       marginRight: theme.spacing(2),
     },
     username: {
@@ -156,16 +160,14 @@ export default function UserChat() {
           exit={{ opacity: 0 }}
         >
           <Paper className={classes.messageBox}>
-            <Avatar
-              className={classes.userIcon}
-              alt=""
-              src={assetUrl(message.avatarUrl)}
-            />
+            <UserAvatarWithActions avatarUrl={message.avatarUrl} />
+
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "start",
+                marginLeft: theme.spacing(1),
               }}
             >
               <Typography

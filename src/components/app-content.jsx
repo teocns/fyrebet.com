@@ -19,7 +19,12 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
     overflow: "hidden",
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row",
+    width: "100vw",
+    height: "100vh",
+  },
+  appView: {
+    flex: 1,
   },
 }));
 export default function AppContent(props) {
@@ -65,20 +70,18 @@ export default function AppContent(props) {
     };
   });
   return (
-    <motion.div
-      display="flex"
-      flexDirection="column"
-      animate={style_goFullScreen}
-      className={clsx({
-        [classes.appContent]: true,
-      })}
-      ref={appContentElement}
+    <div
+      // animate={style_goFullScreen}
+      className={classes.appContent}
+      // ref={appContentElement}
     >
       <AppDrawer />
-      <AppHeader />
-      <AppView />
-      <LoginModal open={isLoginModalOpen} />
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <AppHeader />
+        <AppView className={classes.appView} />
+      </div>
+      {/* <LoginModal open={isLoginModalOpen} /> */}
       <Snackbars />
-    </motion.div>
+    </div>
   );
 }

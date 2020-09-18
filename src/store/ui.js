@@ -2,8 +2,6 @@ import { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
 
-const CHANGE_EVENT = "change";
-
 class UIStore extends EventEmitter {
   constructor(params) {
     super(params);
@@ -15,18 +13,23 @@ class UIStore extends EventEmitter {
     this.views = {
       current: "",
     };
-    this.modals = { login: { isOpen: false } };
+    this.modals = {
+      login: { isOpen: false },
+      userProfile: {
+        isOpen: false,
+      },
+    };
   }
   addChangeListener(event, callback) {
-    this.on(event ?? CHANGE_EVENT, callback);
+    this.on(event, callback);
   }
 
   removeChangeListener(event, callback) {
-    this.removeListener(event ?? CHANGE_EVENT, callback);
+    this.removeListener(event, callback);
   }
 
   emitChange(event, data) {
-    this.emit(event ?? CHANGE_EVENT, data);
+    this.emit(event, data);
   }
 
   storeMessageReceived(message) {
@@ -63,6 +66,9 @@ class UIStore extends EventEmitter {
   getCurrentView() {
     return this.views.current;
   }
+  toggleUserProfileModal() {
+    this.modals.userProfile.isOpen = !this.modals.userProfile.isOpen;
+  }
 }
 
 const uiStore = new UIStore();
@@ -77,6 +83,9 @@ dispatcher.register((action) => {
       break;
     case ActionTypes.UI_GOTO_VIEW:
       uiStore.setCurrentView(action.data);
+      break;
+    case ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE:
+      uiStore.toggleUserProfileModal();
       break;
     default:
       break;

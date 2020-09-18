@@ -50,7 +50,8 @@ export default function App() {
       }}
     >
       <ThemeProvider theme={theme}>
-        <AnimatePresence>{!isInitialized && <AppPreload />}</AnimatePresence>
+        {/* <AnimatePresence>{!isInitialized && <AppPreload />}</AnimatePresence> */}
+        {/* <AnimatePresence>{isInitialized && }</AnimatePresence> */}
         <AppContent />
       </ThemeProvider>
     </div>
