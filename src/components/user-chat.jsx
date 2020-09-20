@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import UserAvatarWithActions from "./user/user-avatar";
 import theme from "../themes/fyrebet/fyrebet";
+import LanguagePicker from "./pickers/language";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -155,12 +156,15 @@ export default function UserChat() {
     return (
       <div key={Math.random()}>
         <motion.div
-          initial={{ opacity: 0, scale: 0.75, bottom: 0 }}
-          animate={{ opacity: 1, scale: 1, bottom: 0 }}
-          exit={{ opacity: 0 }}
+        // initial={{ opacity: 0, scale: 0.75, bottom: 0 }}
+        // animate={{ opacity: 1, scale: 1, bottom: 0 }}
+        // exit={{ opacity: 0 }}
         >
           <Paper className={classes.messageBox}>
-            <UserAvatarWithActions avatarUrl={message.avatarUrl} />
+            <UserAvatarWithActions
+              userUUID={message.userUUID}
+              avatarUrl={message.avatarUrl}
+            />
 
             <div
               style={{
@@ -209,6 +213,13 @@ export default function UserChat() {
         overflow: "hidden",
       }}
     >
+      <div
+        style={{
+          display: "inline-flex",
+        }}
+      >
+        <LanguagePicker />
+      </div>
       <div className={classes.messagesScroll}>
         <div
           style={{

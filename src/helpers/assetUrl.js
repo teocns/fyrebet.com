@@ -9,5 +9,5 @@ export default function assetUrl(resource) {
   ) {
     return resource;
   }
-  return `${EnvironmentConstants.BASE_URL}${resource}`;
+  return `${EnvironmentConstants.CDN_BASE_URL}${resource}`;
 }

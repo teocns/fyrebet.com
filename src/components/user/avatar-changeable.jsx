@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 
 import { updateAvatar } from "../../actions/session";
 import { useEffect } from "react";
+import assetUrl from "../../helpers/assetUrl";
 
 const useStyles = makeStyles((theme) => ({
   avatarBox: {
@@ -114,10 +115,7 @@ const AvatarChangeable = () => {
           <EditIcon className={classes.editIcon} />
         </motion.div>
         {avatar ? (
-          <img
-            src={EnvironmentConstants.BASE_URL + avatar.sizes["128"]}
-            alt="Avatar"
-          />
+          <img src={assetUrl(avatar.sizes["128"])} alt="Avatar" />
         ) : (
           <ImageIcon className={classes.imageIcon} />
         )}

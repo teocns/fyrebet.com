@@ -14,6 +14,7 @@ import uiStore from "../store/ui";
 
 import ActionTypes from "../constants/ActionTypes";
 import AppDrawer from "./app-drawer";
+import UserInteractionModal from "./user/user-interaction-modal";
 const useStyles = makeStyles((theme) => ({
   appContent: {
     flex: 1,
@@ -82,6 +83,7 @@ export default function AppContent(props) {
       </div>
       {/* <LoginModal open={isLoginModalOpen} /> */}
       <Snackbars />
+      <UserInteractionModal />
     </div>
   );
 }

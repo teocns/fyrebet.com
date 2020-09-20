@@ -30,7 +30,7 @@ const theme = createMuiTheme({
     },
   },
   typography: {
-    fontSize: 12,
+    fontSize: 14,
   },
   overrides: {
     MuiCssBaseline: {

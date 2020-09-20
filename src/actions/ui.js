@@ -1,5 +1,6 @@
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
+import Langs from "../constants/Langs";
 
 export function toggleSidebar(willOpen) {
   dispatcher.dispatch({
@@ -56,5 +57,16 @@ export function openUserProfileModal(userUUID) {
   dispatcher.dispatch({
     actionType: ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE,
     data: { userUUID },
+  });
+}
+
+export function changeLanguage(shortCode) {
+  if (!(shortCode in Langs)) {
+    return;
+  }
+
+  dispatcher.dispatch({
+    actionType: ActionTypes.UI_CHANGE_LANGUAGE,
+    data: { shortCode },
   });
 }

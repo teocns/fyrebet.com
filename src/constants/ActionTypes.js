@@ -27,6 +27,7 @@ const ActionTypes = keyMirror({
   UI_GOTO_VIEW: null,
   UI_TOGGLE_PRINT_RATES_USD: null,
   UI_ERROR: null,
+  UI_CHANGE_LANGUAGE: null,
   SESSION_USER_DATA_RECEIVED: null,
   SESSION_USER_AVATAR_CHANGED: null,
   SESSION_USER_UPDATED: null,

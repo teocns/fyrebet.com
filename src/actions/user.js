@@ -12,3 +12,7 @@ import Environment from "../constants/Environment";
 export const getAll = async () => {
   return await Fetcher.get("/all-users");
 };
+
+export const getUserBrief = (userUUID) => {
+  return Fetcher.get("/user-brief", { userUUID });
+};

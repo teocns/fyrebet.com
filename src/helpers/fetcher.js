@@ -31,9 +31,13 @@ export default class Fetcher {
       let requestOptions = {
         method: method,
         headers,
-        body: JSON.stringify(data),
         credentials: "include",
       };
+      if (method === "POST") {
+        requestOptions.body = JSON.stringify(data);
+      } else {
+        endpoint = `${endpoint}?${new URLSearchParams(data).toString()}`;
+      }
       fetch(endpoint, requestOptions).then((response) => {
         response.json().then((json) => {
           try {
@@ -53,7 +57,7 @@ export default class Fetcher {
     // Adjust endpoint
     return this._req("POST", endpoint, data);
   }
-  static get(endpoint) {
-    return this._req("GET", endpoint);
+  static get(endpoint, data) {
+    return this._req("GET", endpoint, data);
   }
 }
