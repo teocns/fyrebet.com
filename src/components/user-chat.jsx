@@ -3,15 +3,20 @@ import Box from "@material-ui/core/Box";
 
 import { makeStyles } from "@material-ui/core/styles";
 
-import { TextField, Divider } from "@material-ui/core/";
+import {
+  Avatar,
+  Typography,
+  Paper,
+  TextField,
+  Divider,
+  IconButton,
+} from "@material-ui/core/";
 import Skeleton from "@material-ui/lab/Skeleton";
 
 import * as userChatActions from "../actions/chat";
 import userChatStore from "../store/user-chat";
-import Typography from "@material-ui/core/Typography";
+
 import ActionTypes from "../constants/ActionTypes";
-import Paper from "@material-ui/core/Paper";
-import Avatar from "@material-ui/core/Avatar";
 
 import assetUrl from "../helpers/assetUrl";
 
@@ -20,7 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import UserAvatarWithActions from "./user/user-avatar";
 import theme from "../themes/fyrebet/fyrebet";
 import LanguagePicker from "./pickers/language";
-
+import { Send as SendIcon } from "@material-ui/icons";
 const useStyles = makeStyles((theme) => {
   return {
     root: {
@@ -66,6 +71,14 @@ const useStyles = makeStyles((theme) => {
       overflowY: "scroll",
       overflowX: "hidden",
       // scrollbarWidth: 0,
+    },
+    chatTextField: {
+      background: "transparent",
+      border: "none",
+      display: "flex",
+      flex: "1",
+      outline: "none",
+      padding: theme.spacing(1),
     },
   };
 });
@@ -231,10 +244,17 @@ export default function UserChat() {
         </div>
       </div>
 
-      <TextField
-        onKeyPress={onEnterMessageKeyPress}
-        placeholder="Say something..."
-      />
+      <Box display="inline-flex" flexDirection="row" flexWrap="nowrap">
+        <input
+          type="text"
+          className={classes.chatTextField}
+          onKeyPress={onEnterMessageKeyPress}
+          placeholder="Say something..."
+        />
+        <IconButton>
+          <SendIcon />
+        </IconButton>
+      </Box>
     </Box>
   );
 }

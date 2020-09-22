@@ -27,7 +27,9 @@ class UIStore extends EventEmitter {
       if (storedLang) {
         return (this.lang = storedLang);
       } else {
-        this.setLang(Langs.EN.shortName);
+        
+        this.setLang(Langs.EN.shortCode);
+        return this.lang;
       }
     }
     return this.lang;
