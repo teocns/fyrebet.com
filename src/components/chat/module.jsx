@@ -74,7 +74,6 @@ const useStyles = makeStyles((theme) => {
 });
 
 export default function Chat() {
-  const [isChatRoomLoaded, setIsChatRoomLoaded] = useState(false);
   const [activeChatRoom, setActiveChatRoom] = useState(
     chatStore.getActiveChatRoom()
   );
@@ -101,30 +100,6 @@ export default function Chat() {
     setMessages(chatStore.getUserChatMessages());
     setMessagesLoaded(chatStore.isMessagesLoaded);
   };
-  const bindEventListeners = () => {
-    chatStore.addChangeListener(
-      ActionTypes.CHAT_STATUS_RECEIVED,
-      onChatMessagesLoaded
-    ); // When component mounted, subscribe to dispatcher events to receive each new message.
-
-    chatStore.addChangeListener(
-      ActionTypes.CHAT_MESSAGE_RECEIVED,
-      onMessageReceived
-    ); // When component mounted, subscribe to dispatcher events to receive each new message.
-  };
-
-  const unbindEventListeners = () => {
-    chatStore.removeChangeListener(
-      ActionTypes.CHAT_STATUS_RECEIVED,
-      onChatMessagesLoaded
-    ); // When component mounted, subscribe to dispatcher events to receive each new message.
-
-    // On component unmounting, remove previous listener.
-    chatStore.removeChangeListener(
-      ActionTypes.CHAT_MESSAGE_RECEIVED,
-      onMessageReceived
-    );
-  };
 
   const scrollChatDown = () => {
     setTimeout(() => {
@@ -138,10 +113,6 @@ export default function Chat() {
     scrollChatDown();
     return unbindEventListeners;
   });
-  const onMessageReceived = () => {
-    // Push message to the stack of 50 messges in the chat.
-    setMessages([...chatStore.getUserChatMessages()]);
-  };
 
   const renderSkeletonBox = () => {
     return (
