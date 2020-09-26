@@ -2,6 +2,8 @@ import constants from "../constants/Environment";
 import sessionStore from "../store/session";
 import * as sessionActions from "../actions/session";
 import Errors from "../constants/errors";
+import Error from "../classes/Error";
+
 String.prototype.trimChar = function (charToRemove) {
   let string = this;
   while (string.charAt(0) == charToRemove) {
@@ -41,7 +43,7 @@ export default class Fetcher {
       fetch(endpoint, requestOptions).then((response) => {
         response.json().then((json) => {
           try {
-            if (json.error) {
+            if (Error.inRespose(json)) {
               sessionActions.onApiError(json.error);
             }
             resolve(json);

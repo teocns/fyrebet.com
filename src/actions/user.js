@@ -1,7 +1,7 @@
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
 
-import Fetcher from "../helpers/fetcher";
+import Fetcher from "../classes/fetcher";
 import SocketEvents from "../constants/SocketEvents";
 
 import sessionStore from "../store/session";

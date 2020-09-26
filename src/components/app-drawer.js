@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import dispatcher from "../dispatcher";
 
-import UserChat from "./user-chat";
+import Chat from "./chat";
 import uiStore from "../store/ui";
 import { toggleSidebar } from "../actions/ui";
 
@@ -90,7 +90,7 @@ export default function AppDrawer() {
               </IconButton>
             </div>
             <Divider />
-            <UserChat style={{ height: "100%" }} id="porcodiofra" />
+            <Chat style={{ height: "100%" }} id="coolfra" />
           </Drawer>
         </motion.div>
       )}

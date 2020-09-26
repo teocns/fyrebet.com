@@ -3,23 +3,26 @@ import Box from "@material-ui/core/Box";
 
 import { makeStyles } from "@material-ui/core/styles";
 
-import { TextField, Divider } from "@material-ui/core/";
-import Skeleton from "@material-ui/lab/Skeleton";
+import ActionTypes from "../../constants/ActionTypes";
+import {
+  Skeleton,
+  TextField,
+  Divider,
+  Typography,
+  Paper,
+  Avatar,
+} from "@material-ui/core/";
 
-import * as userChatActions from "../actions/chat";
-import userChatStore from "../store/user-chat";
-import Typography from "@material-ui/core/Typography";
-import ActionTypes from "../constants/ActionTypes";
-import Paper from "@material-ui/core/Paper";
-import Avatar from "@material-ui/core/Avatar";
+import * as chatActions from "../../actions/chat";
+import chatStore from "../../store/chat";
 
-import assetUrl from "../helpers/assetUrl";
+import assetUrl from "../../helpers/assetUrl";
 
 import { motion, AnimatePresence } from "framer-motion";
 
-import UserAvatarWithActions from "./user/user-avatar";
-import theme from "../themes/fyrebet/fyrebet";
-import LanguagePicker from "./pickers/language";
+import UserAvatarWithActions from "../user/user-avatar";
+import theme from "../../themes/fyrebet/fyrebet";
+import LanguagePicker from "../pickers/language";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -70,11 +73,18 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-export default function UserChat() {
-  const [messages, setMessages] = useState(userChatStore.getUserChatMessages());
-  const [messagesLoaded, setMessagesLoaded] = useState(
-    userChatStore.isMessagesLoaded
+export default function Chat() {
+  const [isChatRoomLoaded, setIsChatRoomLoaded] = useState(false);
+  const [activeChatRoom, setActiveChatRoom] = useState(
+    chatStore.getActiveChatRoom()
   );
+
+  const [messages, setMessages] = useState(chatStore.getUserChatMessages());
+  const [messagesLoaded, setMessagesLoaded] = useState(
+    chatStore.isMessagesLoaded
+  );
+
+  const onChatRoomDataReceived = (chatRoomData) => {};
 
   const classes = useStyles();
 
@@ -83,34 +93,34 @@ export default function UserChat() {
   const onEnterMessageKeyPress = (event) => {
     if (event.key === "Enter") {
       // If enter is pressed...
-      userChatActions.sendMessage(event.target.value.trim()); // Call actions function that interfaces with the server
+      chatActions.sendMessage(event.target.value.trim()); // Call actions function that interfaces with the server
       event.target.value = ""; // Reset the textfield text to empty
     }
   };
   const onChatMessagesLoaded = () => {
-    setMessages(userChatStore.getUserChatMessages());
-    setMessagesLoaded(userChatStore.isMessagesLoaded);
+    setMessages(chatStore.getUserChatMessages());
+    setMessagesLoaded(chatStore.isMessagesLoaded);
   };
   const bindEventListeners = () => {
-    userChatStore.addChangeListener(
+    chatStore.addChangeListener(
       ActionTypes.CHAT_STATUS_RECEIVED,
       onChatMessagesLoaded
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
 
-    userChatStore.addChangeListener(
+    chatStore.addChangeListener(
       ActionTypes.CHAT_MESSAGE_RECEIVED,
       onMessageReceived
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
   };
 
   const unbindEventListeners = () => {
-    userChatStore.removeChangeListener(
+    chatStore.removeChangeListener(
       ActionTypes.CHAT_STATUS_RECEIVED,
       onChatMessagesLoaded
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
 
     // On component unmounting, remove previous listener.
-    userChatStore.removeChangeListener(
+    chatStore.removeChangeListener(
       ActionTypes.CHAT_MESSAGE_RECEIVED,
       onMessageReceived
     );
@@ -130,7 +140,7 @@ export default function UserChat() {
   });
   const onMessageReceived = () => {
     // Push message to the stack of 50 messges in the chat.
-    setMessages([...userChatStore.getUserChatMessages()]);
+    setMessages([...chatStore.getUserChatMessages()]);
   };
 
   const renderSkeletonBox = () => {
@@ -204,6 +214,7 @@ export default function UserChat() {
       });
     }
   };
+
   return (
     <Box
       style={{
