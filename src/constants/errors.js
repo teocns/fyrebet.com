@@ -10,6 +10,9 @@ const Errors = {
   ERR_WAIT_BEFORE_SENDING_MESSAGE: "Please wait {0}s to text again.",
   ERR_UNAUTHENTICATED: "It seems you're not logged in yet!",
   ERR_INVALID_PICTURE: "Please try with another picture.",
+  ERR_NO_ACCESS_TO_CONVERSATION:
+    "You cannot send a message in this chat room at the time being.",
+  ERR_USER_NOT_FOUND: "We cannot find the requested user.",
 };
 
 module.exports = Errors;
