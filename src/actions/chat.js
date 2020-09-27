@@ -5,6 +5,8 @@ import { sendMessage as socketSendMessage } from "../socket";
 import chatStore from "../store/chat";
 import { Socket } from "socket.io-client";
 
+import { ChatPublicRooms } from "../constants/Chat";
+
 export function sendMessage(data) {
   //console.log("sending message from user chat actions");
 
@@ -43,5 +45,27 @@ export function onChatStatusReceived(chatStatus) {
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_STATUS_RECEIVED,
     data: chatStatus,
+  });
+}
+
+export function loadDefaultChatRoom() {
+  setTimeout(() => {
+    // Check which one is the default - and if there's any
+    const def = chatStore.getDefaultChatRoom();
+    let willRequestChatRoomUUID = undefined;
+    if (!def) {
+      // No default stored. Probably users' first chat entry
+      // Set default to english
+      willRequestChatRoomUUID = ChatPublicRooms.EN.shortCode;
+    } else {
+      willRequestChatRoomUUID = def;
+    }
+
+    dispatcher.dispatch({
+      actionType: ActionTypes.CHAT_ROOM_CHANGE,
+      data: {
+        chatRoomUUID: willRequestChatRoomUUID,
+      },
+    });
   });
 }

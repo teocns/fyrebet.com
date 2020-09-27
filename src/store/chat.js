@@ -9,7 +9,7 @@ class ChatStore extends EventEmitter {
   constructor(params) {
     super(params);
     this.isMessagesLoaded = false;
-    this.currentChatRoom = undefined;
+    this.activeChatRoom = undefined;
     this.chatRooms = {}; // Indexed by UUID. Public chats will always be here.
     this.messages = [];
   }
@@ -17,13 +17,15 @@ class ChatStore extends EventEmitter {
   storeAvailableChatRooms({ chatRooms }) {
     this.chatRooms = chatRooms;
   }
-  getLastChosenChatroom() {
+  getLastChosenChatRoom() {
     return localStorage.getItem("lastChatRoomUUID");
   }
   setCurrentChatRoom(chatRoomUUID) {
     //this.currentChatRoom = this.chatRooms[chatRoomUUID];
   }
-
+  getActiveChatRoom() {
+    return this.activeChatRoom;
+  }
   addChangeListener(actionType, callback) {
     this.on(actionType ?? DEFAULT_EVENT, callback);
   }
@@ -53,6 +55,24 @@ class ChatStore extends EventEmitter {
     this.isMessagesLoaded = true;
     this.messages = messagesArray;
   }
+  changeChatRoom(chatRoomUUID) {
+    // Fires when the user changes the chat room from UI
+    this._isChatRoomLoading = true;
+    this.activeChatRoom = chatRoomUUID;
+  }
+  storeChatData(chatData) {
+    // Called once the data of the requested chat room has been received from the server
+    this._isChatRoomLoading = false; // We are not waiting anymore for the data
+  }
+  isChatRoomLoading() {
+    return this._isChatRoomLoading;
+  }
+  getDefaultChatRoom() {
+    return (
+      this.defaultChatRoom ||
+      (this.defaultChatRoom = localStorage.getItem("defaultChatRoom"))
+    );
+  }
 }
 
 const chatStore = new ChatStore();
@@ -66,9 +86,15 @@ chatStore.dispatchToken = dispatcher.register((action) => {
     case ActionTypes.CHAT_MESSAGE_SENT:
       // Do nothing, for now
       break;
+    case ActionTypes.CHAT_ROOM_CHANGE:
+      chatStore.changeChatRoom(action.data.chatRoomUUID);
+      break;
+    case ActionTypes.CHAT_ROOM_DATA_RECEIVED:
+      chatStore.storeChatData(action.data);
+      break;
     case ActionTypes.CHAT_STATUS_RECEIVED:
       // We receive the users' available chatRooms as status
-      this.storeAvailableChatRooms(action.data);
+      chatStore.storeAvailableChatRooms(action.data);
       break;
     default:
       break;

@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import dispatcher from "../dispatcher";
 
-import Chat from "./chat";
+import Chat from "./chat/module";
 import uiStore from "../store/ui";
 import { toggleSidebar } from "../actions/ui";
 
