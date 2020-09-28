@@ -17,8 +17,8 @@ const bindSessionSocketHandler = (socket) => {
     sessionActions.onUserDataReceived(userData);
   });
 
-  socket.on(SocketEvents.ERROR, (errorCode) => {
-    sessionActions.onApiError(errorCode);
+  socket.on(SocketEvents.ERROR, (errorData) => {
+    sessionActions.onApiError(errorData);
   });
 
   socket.on(SocketEvents.SUCCESS, (successMessage) => {

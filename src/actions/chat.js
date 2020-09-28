@@ -6,15 +6,25 @@ import chatStore from "../store/chat";
 import { Socket } from "socket.io-client";
 
 import { ChatPublicRooms } from "../constants/Chat";
+import sessionStore from "../store/session";
+import { Dispatcher } from "flux";
 
-export function sendMessage(data) {
+export function sendMessage(messageText) {
   //console.log("sending message from user chat actions");
 
-  socketSendMessage(SocketEvents.SEND_CHAT_MESSAGE, data);
+  const activeChatRoom = chatStore.getActiveChatRoom();
+
+  if (!activeChatRoom || !activeChatRoom.UUID) return;
+
+  let messageData = {
+    messageText,
+    chatRoomUUID: activeChatRoom.UUID,
+  };
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_MESSAGE_SENT,
-    data: data,
+    data: messageData,
   });
+  socketSendMessage(SocketEvents.SEND_CHAT_MESSAGE, messageData);
 }
 
 export function onChatMessageReceived(messageData) {
@@ -27,12 +37,15 @@ export function onChatMessageReceived(messageData) {
 export function getAvailableChatRooms() {}
 
 export function changeActiveChatRoom({ chatRoomUUID }) {
-  socketSendMessage(SocketEvents.CHAT_SWITCH_ACTIVE_ROOM, { chatRoomUUID });
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_ROOM_CHANGE,
+    data: { chatRoomUUID },
+  });
 
-  // Check if chatRoom is available in the store (i.e User has it active)
-  if (!chatStore.hasChatRoomPreloaded(chatRoomUUID)) {
-    // Get chat room
-  }
+  // // Check if chatRoom is available in the store (i.e User has it active)
+  // if (!chatStore.hasChatRoomPreloaded(chatRoomUUID)) {
+  //   // Get chat room
+  // }
 }
 export function onChatRoomDataReceived(chatRoomData) {
   dispatcher.dispatch({

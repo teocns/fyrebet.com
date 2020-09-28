@@ -101,11 +101,11 @@ export function onUserDataReceived(userData) {
     });
 }
 
-export function onApiError(errorMessage) {
-  console.log(errorMessage);
+export function onApiError(errorData) {
+  console.log(errorData);
   dispatcher.dispatch({
     actionType: ActionTypes.API_ERROR,
-    data: errorMessage,
+    data: errorData,
   });
 }
 

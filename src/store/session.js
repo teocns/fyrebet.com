@@ -97,17 +97,18 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
       sessionStore.setAuthenticationToken(undefined);
       break;
     case ActionTypes.API_ERROR:
-      let errorMessage = undefined;
-      let errorHasToBeFormatted = Array.isArray(event.data);
+      const { errorCode, variables } = event.data;
 
+      let errorHasToBeFormatted = Array.isArray(variables);
+      let errorMessage = undefined;
       if (errorHasToBeFormatted) {
         let params = [];
         for (let i = 1; i < event.data.length; i++) {
           params.push(event.data[i]);
         }
-        errorMessage = Errors[event.data[0]].toString().format(params);
+        errorMessage = Errors[errorCode].toString().format(params);
       } else {
-        errorMessage = Errors[event.data];
+        errorMessage = Errors[errorCode];
       }
       setTimeout(() => {
         dispatcher.dispatch({

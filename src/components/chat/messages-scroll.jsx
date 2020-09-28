@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme) => {
       flesBasis: "100%",
       height: "100%",
       display: "flex",
-      flexDirection: "column",
+      flexDirection: "column-reverse",
       overflowY: "scroll",
       overflowX: "hidden",
       // scrollbarWidth: 0,
@@ -73,9 +73,9 @@ const useStyles = makeStyles((theme) => {
 });
 
 const ChatMessagesScroll = () => {
-  const [messages, setMessages] = useState(chatStore.getUserChatMessages());
+  const [messages, setMessages] = useState(chatStore.getActiveChatMessages());
 
-  const MessagesLoaded = Array.isArray(messages) && messages.length;
+  const MessagesLoaded = Array.isArray(messages);
 
   useEffect(() => {
     bindEventListeners();
@@ -85,15 +85,15 @@ const ChatMessagesScroll = () => {
   });
 
   const onChatMessagesLoaded = () => {
-    setMessages(chatStore.getUserChatMessages());
+    setMessages(chatStore.getActiveChatMessages());
   };
   const onMessageReceived = () => {
     // Push message to the stack of 50 messges in the chat.
-    setMessages([...chatStore.getUserChatMessages()]);
+    setMessages([...chatStore.getActiveChatMessages()]);
   };
   const bindEventListeners = () => {
     chatStore.addChangeListener(
-      ActionTypes.CHAT_STATUS_RECEIVED,
+      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
       onChatMessagesLoaded
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
 
@@ -105,7 +105,7 @@ const ChatMessagesScroll = () => {
 
   const unbindEventListeners = () => {
     chatStore.removeChangeListener(
-      ActionTypes.CHAT_STATUS_RECEIVED,
+      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
       onChatMessagesLoaded
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
 

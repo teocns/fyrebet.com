@@ -11,7 +11,6 @@ class ChatStore extends EventEmitter {
     this.isMessagesLoaded = false;
     this.activeChatRoom = undefined;
     this.chatRooms = {}; // Indexed by UUID. Public chats will always be here.
-    this.messages = [];
   }
 
   storeAvailableChatRooms({ chatRooms }) {
@@ -38,22 +37,22 @@ class ChatStore extends EventEmitter {
     this.emit(event ?? DEFAULT_EVENT, data);
   }
   // Proprietary functions
-  getUserChatMessages() {
-    return this.messages;
+  getActiveChatMessages() {
+    return this.activeChatRoom ? this.activeChatRoom.messages : undefined;
   }
 
   storeMessageReceived(message) {
     // Keep a maximum stack of 50 messages received. Why not?
-    if (this.messages.length >= 50) {
-      this.messages.shift();
+    if (this.activeChatRoom.messages.length >= 50) {
+      this.activeChatRoom.messages.shift();
     }
-    this.messages.push(message);
-    this.lastMessageReceived = new Date().getTime();
+    this.activeChatRoom.messages.push(message);
+    this.activeChatRoom.lastMessageReceived = new Date().getTime();
   }
 
   storeInitialMessages(messagesArray) {
     this.isMessagesLoaded = true;
-    this.messages = messagesArray;
+    this.activeChatRoom.messages = messagesArray;
   }
   changeChatRoom(chatRoomUUID) {
     // Fires when the user changes the chat room from UI
@@ -63,6 +62,8 @@ class ChatStore extends EventEmitter {
   storeChatData(chatData) {
     // Called once the data of the requested chat room has been received from the server
     this._isChatRoomLoading = false; // We are not waiting anymore for the data
+
+    this.activeChatRoom = chatData;
   }
   isChatRoomLoading() {
     return this._isChatRoomLoading;
@@ -92,9 +93,18 @@ chatStore.dispatchToken = dispatcher.register((action) => {
     case ActionTypes.CHAT_ROOM_DATA_RECEIVED:
       chatStore.storeChatData(action.data);
       break;
-    case ActionTypes.CHAT_STATUS_RECEIVED:
-      // We receive the users' available chatRooms as status
-      chatStore.storeAvailableChatRooms(action.data);
+    // case ActionTypes.CHAT_STATUS_RECEIVED:
+    //   // We receive the users' available chatRooms as status
+    //   chatStore.storeAvailableChatRooms(action.data);
+    //   break;
+    case ActionTypes.SESSION_INITIAL_STATUS_RECEIVED:
+      // Look for public rooms
+      if (
+        "chatRooms" in action.data &&
+        typeof action.data.chatRooms === "object"
+      ) {
+        chatStore.storeAvailableChatRooms(action.data.chatRooms);
+      }
       break;
     default:
       break;

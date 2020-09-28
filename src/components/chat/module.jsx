@@ -103,12 +103,6 @@ export default function Chat() {
     chatStore.getActiveChatRoom()
   );
 
-  if (!activeChatRoom && !chatStore.isChatRoomLoading()) {
-    // We need to request a chat room. Load default!
-    chatActions.loadDefaultChatRoom();
-  }
-  const onChatRoomDataReceived = (chatRoomData) => {};
-
   const classes = useStyles();
 
   // Subscribe chat message updates, shall we?
@@ -121,9 +115,27 @@ export default function Chat() {
     }
   };
 
-  const bindEventListeners = () => {};
+  const onChatRoomDataReceived = () => {
+    setActiveChatRoom(chatStore.getActiveChatRoom());
+  };
 
-  const unbindEventListeners = () => {};
+  const bindEventListeners = () => {
+    if (!activeChatRoom && !chatStore.isChatRoomLoading()) {
+      // We need to request a chat room. Load default!
+      chatActions.loadDefaultChatRoom();
+    }
+    chatStore.addChangeListener(
+      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
+      onChatRoomDataReceived
+    );
+  };
+
+  const unbindEventListeners = () => {
+    chatStore.removeChangeListener(
+      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
+      onChatRoomDataReceived
+    );
+  };
   useEffect(() => {
     bindEventListeners();
     return unbindEventListeners;
@@ -164,6 +176,7 @@ export default function Chat() {
             //onKeyPress={onEnterMessageKeyPress}
             placeholder="Say something..."
             onInput={autoGrowTextarea}
+            onKeyPress={onEnterMessageKeyPress}
           ></textarea>
         </Paper>
         <IconButton

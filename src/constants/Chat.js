@@ -1,6 +1,6 @@
 export const ChatPublicRooms = {
   EN: {
-    shortCode: "USA",
+    shortCode: "EN",
     language: "English",
     lang: "en_US",
     flagAsset: require("../assets/flags/united-states-of-america.svg"),
