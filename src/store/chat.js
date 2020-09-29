@@ -93,6 +93,18 @@ chatStore.dispatchToken = dispatcher.register((action) => {
     case ActionTypes.CHAT_ROOM_DATA_RECEIVED:
       chatStore.storeChatData(action.data);
       break;
+    case ActionTypes.UI_CHANGE_LANGUAGE:
+      const { shortCode } = action.data;
+      // Request chatRoom
+      setTimeout(() => {
+        dispatcher.dispatch({
+          actionType: ActionTypes.CHAT_ROOM_CHANGE,
+          data: {
+            chatRoomUUID: shortCode,
+          },
+        });
+      });
+      break;
     // case ActionTypes.CHAT_STATUS_RECEIVED:
     //   // We receive the users' available chatRooms as status
     //   chatStore.storeAvailableChatRooms(action.data);

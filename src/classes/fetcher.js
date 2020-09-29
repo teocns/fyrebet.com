@@ -44,11 +44,11 @@ export default class Fetcher {
         response.json().then((json) => {
           try {
             if (Error.inRespose(json)) {
-              sessionActions.onApiError(json.error);
+              sessionActions.onApiError(new Error(json));
             }
             resolve(json);
           } catch (error) {
-            sessionActions.onApiError(Errors.ERR_UNKNOWN);
+            sessionActions.onApiError(new Error(Errors.ERR_UNKNOWN));
             resolve(false);
           }
         });

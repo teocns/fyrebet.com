@@ -24,7 +24,7 @@ const bindChatSocketHandler = (socket) => {
   chatStore.addChangeListener(
     ActionTypes.CHAT_ROOM_CHANGE,
     ({ chatRoomUUID }) => {
-      socket.emit(SocketEvents.CHAT_ROOM_DATA_REQUESTED, { chatRoomUUID });
+      socket.emit(SocketEvents.CHAT_ROOM_DATA_REQUEST, { chatRoomUUID });
     }
   );
 };

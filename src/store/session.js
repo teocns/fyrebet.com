@@ -96,30 +96,7 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
     case ActionTypes.SESSION_USER_LOGOUT:
       sessionStore.setAuthenticationToken(undefined);
       break;
-    case ActionTypes.API_ERROR:
-      const { errorCode, variables } = event.data;
 
-      let errorHasToBeFormatted = Array.isArray(variables);
-      let errorMessage = undefined;
-      if (errorHasToBeFormatted) {
-        let params = [];
-        for (let i = 1; i < event.data.length; i++) {
-          params.push(event.data[i]);
-        }
-        errorMessage = Errors[errorCode].toString().format(params);
-      } else {
-        errorMessage = Errors[errorCode];
-      }
-      setTimeout(() => {
-        dispatcher.dispatch({
-          actionType: ActionTypes.UI_SHOW_SNACKBAR,
-          data: {
-            message: errorMessage,
-            severity: "error",
-          },
-        });
-      });
-      break;
     case ActionTypes.API_SUCCESS:
       // Snackbar component will subscribe to this
       setTimeout(() => {

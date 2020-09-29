@@ -8,6 +8,7 @@ import { Socket } from "socket.io-client";
 import { ChatPublicRooms } from "../constants/Chat";
 import sessionStore from "../store/session";
 import { Dispatcher } from "flux";
+import Fetcher from "../classes/fetcher";
 
 export function sendMessage(messageText) {
   //console.log("sending message from user chat actions");
@@ -81,4 +82,17 @@ export function loadDefaultChatRoom() {
       },
     });
   });
+}
+
+export async function startPrivateChat(userUUID) {
+  // Retrieves private chat UUID
+  const { chatRoomUUID } = await Fetcher.get("/find-private-chat-room", {
+    userUUID,
+  });
+  if (typeof chatRoomUUID === "string" && chatRoomUUID.length === 36) {
+    dispatcher.dispatch({
+      actionType: ActionTypes.CHAT_ROOM_CHANGE,
+      data: { chatRoomUUID },
+    });
+  }
 }

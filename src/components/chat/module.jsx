@@ -28,6 +28,7 @@ import theme from "../../themes/fyrebet/fyrebet";
 import LanguagePicker from "../pickers/language";
 import { Send as SendIcon } from "@material-ui/icons";
 import ChatMessagesScroll from "./messages-scroll";
+
 const useStyles = makeStyles((theme) => {
   return {
     root: {

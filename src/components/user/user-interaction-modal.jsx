@@ -19,6 +19,8 @@ import Skeleton from "@material-ui/lab/Skeleton";
 
 import assetUrl from "../../helpers/assetUrl";
 import Currencies from "../../constants/Currencies";
+
+import * as chatActions from "../../actions/chat";
 const useStyles = makeStyles((theme) => {
   return {
     userAvatar: {
@@ -52,7 +54,7 @@ const UserInteractionModal = () => {
       });
     }
   };
-  
+
   useEffect(() => {
     uiStore.addChangeListener(
       ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE,
@@ -117,7 +119,12 @@ const UserInteractionModal = () => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Have a private chat with the user" aria-label="Chat">
-          <IconButton aria-label="Chat">
+          <IconButton
+            aria-label="Chat"
+            onClick={() => {
+              chatActions.startPrivateChat(userBrief.userUUID);
+            }}
+          >
             <Icons.Chat />
           </IconButton>
         </Tooltip>

@@ -1,12 +1,16 @@
 import ErrorCodes from "../constants/errors";
 
 export default class Error {
-  constructor({ errorCode, variables }) {
-    this.errorCode = errorCode;
-    this.variables = variables;
+  constructor(any) {
+    if (typeof any === "string") {
+      this.errorCode = any;
+    } else {
+      const { errorCode, variables } = any;
+      this.errorCode = errorCode;
+      this.variables = variables;
+    }
   }
-
-  getMessage() {
+  toString() {
     let mesg = ErrorCodes[this.errorCode];
     if (this.variables) {
       mesg = mesg.toString().format(this.variables);
@@ -15,7 +19,7 @@ export default class Error {
   }
 
   static inRespose(responseObject) {
-    if ("errorCode" in responseObject && "variables" in responseObject) {
+    if ("errorCode" in responseObject) {
       return true;
     }
     return false;
