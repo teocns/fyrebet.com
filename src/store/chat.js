@@ -11,6 +11,7 @@ class ChatStore extends EventEmitter {
     this.isMessagesLoaded = false;
     this.activeChatRoom = undefined;
     this.chatRooms = {}; // Indexed by UUID. Public chats will always be here.
+    this.openChats = [];
   }
 
   storeAvailableChatRooms({ chatRooms }) {
@@ -39,6 +40,13 @@ class ChatStore extends EventEmitter {
   // Proprietary functions
   getActiveChatMessages() {
     return this.activeChatRoom ? this.activeChatRoom.messages : undefined;
+  }
+
+  getOpenChats() {
+    return this.openChats;
+  }
+  storeOpenChats(chats) {
+    this.openChats = chats;
   }
 
   storeMessageReceived(message) {
@@ -92,6 +100,9 @@ chatStore.dispatchToken = dispatcher.register((action) => {
       break;
     case ActionTypes.CHAT_ROOM_DATA_RECEIVED:
       chatStore.storeChatData(action.data);
+      break;
+    case ActionTypes.CHAT_OPEN_ROOMS_RECEIVED:
+      chatStore.storeOpenChats(action.data.recentChats);
       break;
     case ActionTypes.UI_CHANGE_LANGUAGE:
       const { shortCode } = action.data;

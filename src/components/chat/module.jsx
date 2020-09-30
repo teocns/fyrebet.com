@@ -159,6 +159,7 @@ export default function Chat() {
       <div
         style={{
           display: "inline-flex",
+          alignItems: "center",
         }}
       >
         <LanguagePicker />

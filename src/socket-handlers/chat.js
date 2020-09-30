@@ -21,6 +21,12 @@ const bindChatSocketHandler = (socket) => {
     chatActions.onChatRoomDataReceived(chatRoomData);
   });
 
+  socket.on(SocketEvents.USER_DATA, ({ recentChats }) => {
+    if (recentChats && Array.isArray(recentChats)) {
+      chatActions.onUserOpenChatsReceived(recentChats);
+    }
+  });
+
   chatStore.addChangeListener(
     ActionTypes.CHAT_ROOM_CHANGE,
     ({ chatRoomUUID }) => {

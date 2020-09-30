@@ -96,3 +96,10 @@ export async function startPrivateChat(userUUID) {
     });
   }
 }
+
+export async function onUserOpenChatsReceived(recentChats) {
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_OPEN_ROOMS_RECEIVED,
+    data: { recentChats },
+  });
+}
