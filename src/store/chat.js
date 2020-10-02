@@ -11,19 +11,25 @@ class ChatStore extends EventEmitter {
     this.isMessagesLoaded = false;
     this.activeChatRoom = undefined;
     this.chatRooms = {}; // Indexed by UUID. Public chats will always be here.
+    this.openChats = []; // Array storing only OPEN chat rooms (in the mini).
+    let self = this;
+    window.chatrooms = () => console.log(self.chatRooms);
+    window.openchats = () => console.log(self.openChats);
   }
 
   storeAvailableChatRooms({ chatRooms }) {
+    if (!chatRooms) {
+      return;
+    }
     this.chatRooms = chatRooms;
   }
   getLastChosenChatRoom() {
     return localStorage.getItem("lastChatRoomUUID");
   }
-  setCurrentChatRoom(chatRoomUUID) {
-    //this.currentChatRoom = this.chatRooms[chatRoomUUID];
-  }
   getActiveChatRoom() {
-    return this.activeChatRoom;
+    if (this.activeChatRoom && this.activeChatRoom in this.chatRooms)
+      return this.chatRooms[this.activeChatRoom];
+    return undefined;
   }
   addChangeListener(actionType, callback) {
     this.on(actionType ?? DEFAULT_EVENT, callback);
@@ -38,14 +44,30 @@ class ChatStore extends EventEmitter {
   }
   // Proprietary functions
   getActiveChatMessages() {
-    return this.activeChatRoom ? this.activeChatRoom.messages : undefined;
+    const activeChat = this.getActiveChatRoom();
+    return activeChat ? activeChat.messages : undefined;
   }
 
+  getOpenChats() {
+    // Returns only open chats (in the mini)
+    const ret = {};
+    for (let chatRoomUUID of this.openChats) {
+      ret[chatRoomUUID] = this.chatRooms[chatRoomUUID];
+    }
+    return ret;
+  }
   getChats() {
     return this.chatRooms;
   }
   storeChats(chats) {
-    this.chatRooms = { ...this.chatRooms, ...chats };
+    debugger;
+    if (Array.isArray(chats)) {
+      chats.map((chat) => {
+        this.chatRooms[chat.chatRoomUUID] = chat;
+      });
+    } else if (typeof chats === "object") {
+      this.chatRooms = { ...this.chatRooms, ...chats };
+    }
   }
   hasChat(chatRoomUUID) {
     return (
@@ -55,31 +77,21 @@ class ChatStore extends EventEmitter {
   }
   storeMessageReceived(message) {
     // Keep a maximum stack of 50 messages received. Why not?4
-    if (this.activeChatRoom.messages.length >= 50) {
-      this.activeChatRoom.messages.shift();
+    if (message.chatRoomUUID in this.chatRooms) {
+      this.chatRooms[message.chatRoomUUID].messages.push(message);
+      if (this.chatRooms[message.chatRoomUUID].messages.length > 50) {
+        this.chatRooms[message.chatRoomUUID].messages.shift();
+      }
     }
-    this.activeChatRoom.messages.push(message);
-    this.activeChatRoom.lastMessageReceived = new Date().getTime();
   }
 
-  storeInitialMessages(messagesArray) {
-    this.isMessagesLoaded = true;
-    this.activeChatRoom.messages = messagesArray;
-  }
-  changeChatRoom(chatRoomUUID) {
+  setActiveChatRoom(chatRoomUUID) {
     // Fires when the user changes the chat room from UI
     this._isChatRoomLoading = true;
     this.activeChatRoom = chatRoomUUID;
   }
-  storeChatData(chatData) {
-    // Called once the data of the requested chat room has been received from the server
-    this._isChatRoomLoading = false; // We are not waiting anymore for the data
 
-    this.activeChatRoom = chatData;
-  }
-  isChatRoomLoading() {
-    return this._isChatRoomLoading;
-  }
+  isChatRoomLoading() {}
   getDefaultChatRoom() {
     return (
       this.defaultChatRoom ||
@@ -100,13 +112,13 @@ chatStore.dispatchToken = dispatcher.register((action) => {
       // Do nothing, for now
       break;
     case ActionTypes.CHAT_ROOM_CHANGE:
-      chatStore.changeChatRoom(action.data.chatRoomUUID);
+      chatStore.setActiveChatRoom(action.data.chatRoomUUID);
       break;
     case ActionTypes.CHAT_ROOM_DATA_RECEIVED:
-      chatStore.storeChatData(action.data);
+      chatStore.storeChats(action.data);
       break;
     case ActionTypes.CHAT_OPEN_ROOMS_RECEIVED:
-      chatStore.storeOpenChats(action.data.recentChats);
+      chatStore.storeChats(action.data.recentChats);
       break;
     case ActionTypes.UI_CHANGE_LANGUAGE:
       const { shortCode } = action.data;
