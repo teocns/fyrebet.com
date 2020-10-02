@@ -29,10 +29,19 @@ export function sendMessage(messageText) {
 }
 
 export function onChatMessageReceived(messageData) {
-  dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_MESSAGE_RECEIVED,
-    data: messageData,
-  });
+  if (!chatStore.hasChat(messageData.chatRoomUUID)) {
+    // Does not have chat room fetched, hence the store wouldn't know where to push the message.
+    // Downloading the chat data
+    socketSendMessage(
+      SocketEvents.CHAT_ROOM_DATA_REQUEST,
+      messageData.chatRoomUUID
+    );
+  } else {
+    dispatcher.dispatch({
+      actionType: ActionTypes.CHAT_MESSAGE_RECEIVED,
+      data: messageData,
+    });
+  }
 }
 
 export function getAvailableChatRooms() {}
