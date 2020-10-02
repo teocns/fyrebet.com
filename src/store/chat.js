@@ -11,7 +11,6 @@ class ChatStore extends EventEmitter {
     this.isMessagesLoaded = false;
     this.activeChatRoom = undefined;
     this.chatRooms = {}; // Indexed by UUID. Public chats will always be here.
-    this.openChats = [];
   }
 
   storeAvailableChatRooms({ chatRooms }) {
@@ -42,15 +41,20 @@ class ChatStore extends EventEmitter {
     return this.activeChatRoom ? this.activeChatRoom.messages : undefined;
   }
 
-  getOpenChats() {
-    return this.openChats;
+  getChats() {
+    return this.chatRooms;
   }
-  storeOpenChats(chats) {
-    this.openChats = chats;
+  storeChats(chats) {
+    this.chatRooms = { ...this.chatRooms, ...chats };
   }
-
+  hasChat(chatRoomUUID) {
+    return (
+      undefined !==
+      this.openChats.find(({ _chatRoomUUID }) => _chatRoomUUID === chatRoomUUID)
+    );
+  }
   storeMessageReceived(message) {
-    // Keep a maximum stack of 50 messages received. Why not?
+    // Keep a maximum stack of 50 messages received. Why not?4
     if (this.activeChatRoom.messages.length >= 50) {
       this.activeChatRoom.messages.shift();
     }
