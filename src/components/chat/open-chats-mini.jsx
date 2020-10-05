@@ -3,7 +3,7 @@ import chatStore from "../../store/chat";
 
 import { makeStyles } from "@material-ui/core/styles";
 
-import { Avatar, Badge } from "@material-ui/core";
+import { Avatar, Badge, useTheme } from "@material-ui/core";
 import { Skeleton } from "@material-ui/lab";
 import ActionTypes from "../../constants/ActionTypes";
 import assetUrl from "../../helpers/assetUrl";
@@ -48,28 +48,9 @@ const OpenChatsMini = () => {
     chatStore.getActiveChatRoom()
   );
 
-  const [isDragging, setDragging] = useState(false);
-
   const OpenChatsUUIDs = Object.keys(OpenChatRooms).reverse();
-``
   const hasAny =
     OpenChatRooms && Array.isArray(OpenChatsUUIDs) && OpenChatsUUIDs.length > 0;
-
-  // We need to collect an array of height and position data for all of this component's
-  // `Item` children, so we can later us that in calculations to decide when a dragging
-  // `Item` should swap places with its siblings.
-  const positions = useRef([]).current;
-  const setPosition = (i, offset) => (positions[i] = offset);
-
-  // Find the ideal index for a dragging item based on its position in the array, and its
-  // current drag offset. If it's different to its current index, we swap this item with that
-  // sibling.
-  const moveItem = (i, dragOffset) => {
-    const targetIndex = findIndex(i, dragOffset, positions);
-    if (targetIndex !== i) {
-      move(OpenChatsUUIDs, i, targetIndex);
-    }
-  };
 
   const onOpenChatRoomsChanged = () => {
     setOpenChatRooms(chatStore.getOpenChats());
@@ -83,6 +64,8 @@ const OpenChatsMini = () => {
     setActiveChatRoom(chatStore.getActiveChatRoom());
     onOpenChatRoomsChanged();
   };
+
+  const theme = useTheme();
 
   useEffect(() => {
     chatStore.addChangeListener(
@@ -116,8 +99,6 @@ const OpenChatsMini = () => {
   });
 
   const classes = useStyles();
-
-  const dragOriginY = useMotionValue(0);
 
   return (
     <div className={classes.root}>
@@ -157,22 +138,8 @@ const OpenChatsMini = () => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 1.12 }}
-              style={{ cursor: "pointer" }}
-              drag="x"
+              style={{ cursor: "pointer", marginRight: theme.spacing(1) }}
               key={chatRoomUUID}
-              positionTransition={({ delta }) => {
-                if (isDragging) {
-                  // If we're dragging, we want to "undo" the items movement within the list
-                  // by manipulating its dragOriginY. This will keep the item under the cursor,
-                  // even though it's jumping around the DOM.
-                  dragOriginY.set(dragOriginY.get() + delta.y);
-                }
-
-                // If `positionTransition` is a function and returns `false`, it's telling
-                // Motion not to animate from its old position into its new one. If we're
-                // dragging, we don't want any animation to occur.
-                return !isDragging;
-              }}
               onClick={() => {
                 goToRoom(chatRoomUUID);
               }}
