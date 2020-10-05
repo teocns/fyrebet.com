@@ -29,6 +29,7 @@ import { gotoView } from "../actions/ui";
 import CurrencySelect from "./currency-select";
 
 import ratesStore from "../store/rates";
+import LanguagePicker from "./pickers/language";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -165,6 +166,7 @@ export default function AppHeader() {
         <CurrencySelect></CurrencySelect>
 
         {renderUserInfo()}
+        <LanguagePicker />
       </Toolbar>
     </AppBar>
   );

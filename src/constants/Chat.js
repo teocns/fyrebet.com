@@ -1,3 +1,5 @@
+import KeyMirror from "keymirror";
+
 export const ChatPublicRooms = {
   EN: {
     shortCode: "EN",
@@ -30,3 +32,9 @@ export const ChatPublicRooms = {
     flagAsset: require("../assets/flags/romania.svg"),
   },
 };
+
+export const Types = KeyMirror({
+  PRIVATE: null,
+  PUBLIC: null,
+  GROUP: null,
+});

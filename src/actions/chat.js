@@ -3,11 +3,9 @@ import ActionTypes from "../constants/ActionTypes";
 import SocketEvents from "../constants/SocketEvents";
 import { sendMessage as socketSendMessage } from "../socket";
 import chatStore from "../store/chat";
-import { Socket } from "socket.io-client";
 
-import { ChatPublicRooms } from "../constants/Chat";
-import sessionStore from "../store/session";
-import { Dispatcher } from "flux";
+import { ChatPublicRooms, Types } from "../constants/Chat";
+
 import Fetcher from "../classes/fetcher";
 
 export function sendMessage(messageText) {
@@ -46,16 +44,11 @@ export function onChatMessageReceived(messageData) {
 
 export function getAvailableChatRooms() {}
 
-export function changeActiveChatRoom({ chatRoomUUID }) {
+export function changeActiveChatRoom(chatRoomUUID) {
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_ROOM_CHANGE,
     data: { chatRoomUUID },
   });
-
-  // // Check if chatRoom is available in the store (i.e User has it active)
-  // if (!chatStore.hasChatRoomPreloaded(chatRoomUUID)) {
-  //   // Get chat room
-  // }
 }
 export function onChatRoomDataReceived(chatRoomData) {
   dispatcher.dispatch({
@@ -108,7 +101,43 @@ export async function startPrivateChat(userUUID) {
 
 export async function onUserOpenChatsReceived(recentChats) {
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_OPEN_ROOMS_RECEIVED,
+    actionType: ActionTypes.CHAT_OPEN_ROOMS_CHANGED,
     data: { recentChats },
   });
+}
+
+export function closeChat(chatRoomUUID) {
+  // Dispatch chained events
+  [
+    () => {
+      socketSendMessage(SocketEvents.CHAT_ROOM_LEAVE, { chatRoomUUID });
+    },
+    () => {
+      dispatcher.dispatch({
+        actionType: ActionTypes.CHAT_ROOM_CLOSE,
+        data: { chatRoomUUID },
+      });
+    },
+  ].map((f) => setTimeout(f));
+}
+
+export async function onLanguageChanged(shortCode) {
+  // Get old public chat room
+  const publicChatRoom = chatStore.getPublicChatRoom();
+  if (publicChatRoom) {
+    // Close it
+    closeChat(publicChatRoom.chatRoomUUID);
+  }
+  // What was the active chat room?
+  const activeChat = chatStore.activeChatRoom;
+  if (
+    activeChat &&
+    publicChatRoom &&
+    activeChat === publicChatRoom.chatRoomUUID
+  ) {
+    // Change the active chat room
+    setTimeout(() => {
+      changeActiveChatRoom(shortCode);
+    });
+  }
 }

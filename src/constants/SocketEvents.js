@@ -13,6 +13,7 @@ const SocketEvents = keyMirror({
   CHAT_MESSAGE_RECEIVED: null,
   CHAT_ROOM_DATA: null,
   CHAT_ROOM_DATA_REQUEST: null,
+  CHAT_ROOM_LEAVE: null,
   HANDSHAKE_SOCKET_ID: null,
   INITIAL_STATUS: null,
   RATES_UPDATED: null,

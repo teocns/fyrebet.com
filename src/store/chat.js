@@ -1,7 +1,11 @@
 import { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
+
+import * as ChatConstants from "../constants/Chat";
 import { sendMessage } from "../socket";
+
+import bindListeners from "../store-listeners/chat";
 
 const DEFAULT_EVENT = "change";
 
@@ -15,6 +19,7 @@ class ChatStore extends EventEmitter {
     let self = this;
     window.chatrooms = () => console.log(self.chatRooms);
     window.openchats = () => console.log(self.openChats);
+    window.activechat = () => console.log(self.activeChatRoom);
   }
 
   storeAvailableChatRooms({ chatRooms }) {
@@ -51,7 +56,7 @@ class ChatStore extends EventEmitter {
   getOpenChats() {
     // Returns only open chats (in the mini)
     const ret = {};
-    for (let chatRoomUUID of this.openChats) {
+    for (let chatRoomUUID of this.openChats.reverse()) {
       ret[chatRoomUUID] = this.chatRooms[chatRoomUUID];
     }
     return ret;
@@ -59,14 +64,26 @@ class ChatStore extends EventEmitter {
   getChats() {
     return this.chatRooms;
   }
+
+  reorderChats(chatUUID, newIndex) {}
   storeChats(chats) {
-    debugger;
     if (Array.isArray(chats)) {
       chats.map((chat) => {
         this.chatRooms[chat.chatRoomUUID] = chat;
       });
     } else if (typeof chats === "object") {
-      this.chatRooms = { ...this.chatRooms, ...chats };
+      if ("chatRoomUUID" in chats) {
+        // Single chat.
+        this.chatRooms[chats.chatRoomUUID] = chats;
+      } else {
+        let allKeys = Object.keys(chats);
+        let self = this;
+        allKeys.map((key) => {
+          if (key.length === 36) {
+            self.chatRooms[key] = chats[key];
+          }
+        });
+      }
     }
   }
   hasChat(chatRoomUUID) {
@@ -86,21 +103,52 @@ class ChatStore extends EventEmitter {
   }
 
   setActiveChatRoom(chatRoomUUID) {
-    // Fires when the user changes the chat room from UI
-    this._isChatRoomLoading = true;
     this.activeChatRoom = chatRoomUUID;
+    this.addOpenChat(chatRoomUUID);
   }
-
-  isChatRoomLoading() {}
+  addOpenChat(chatRoomUUID) {
+    const indexAlreadyExists = this.openChats.indexOf(chatRoomUUID);
+    // By opening a chat, it will display in mini and player will be pushed into the socket room.
+    if (indexAlreadyExists !== -1) {
+      // Move to the first position
+      this.openChats.splice(
+        0,
+        0,
+        this.openChats.splice(indexAlreadyExists, 1)[0]
+      );
+    } else {
+      this.openChats.push(chatRoomUUID);
+    }
+  }
+  closeOpenChat(chatRoomUUID) {
+    delete this.chatRooms[chatRoomUUID];
+    const ind = this.openChats.indexOf(chatRoomUUID);
+    if (ind > -1) {
+      this.openChats.splice(ind, 1);
+      return true;
+    }
+    return false;
+  }
   getDefaultChatRoom() {
     return (
       this.defaultChatRoom ||
       (this.defaultChatRoom = localStorage.getItem("defaultChatRoom"))
     );
   }
+  getPublicChatRoom() {
+    const chats = this.getChats();
+    for (let chatRoomUUID of Object.keys(chats)) {
+      const chat = chats[chatRoomUUID];
+      if (chat.chatRoomType === ChatConstants.Types.PUBLIC) {
+        return chat;
+      }
+    }
+  }
 }
 
 const chatStore = new ChatStore();
+
+bindListeners();
 
 chatStore.dispatchToken = dispatcher.register((action) => {
   switch (action.actionType) {
@@ -117,25 +165,13 @@ chatStore.dispatchToken = dispatcher.register((action) => {
     case ActionTypes.CHAT_ROOM_DATA_RECEIVED:
       chatStore.storeChats(action.data);
       break;
-    case ActionTypes.CHAT_OPEN_ROOMS_RECEIVED:
+    case ActionTypes.CHAT_OPEN_ROOMS_CHANGED:
       chatStore.storeChats(action.data.recentChats);
       break;
-    case ActionTypes.UI_CHANGE_LANGUAGE:
-      const { shortCode } = action.data;
-      // Request chatRoom
-      setTimeout(() => {
-        dispatcher.dispatch({
-          actionType: ActionTypes.CHAT_ROOM_CHANGE,
-          data: {
-            chatRoomUUID: shortCode,
-          },
-        });
-      });
+    case ActionTypes.CHAT_ROOM_CLOSE:
+      chatStore.closeOpenChat(action.data.chatRoomUUID);
       break;
-    // case ActionTypes.CHAT_STATUS_RECEIVED:
-    //   // We receive the users' available chatRooms as status
-    //   chatStore.storeAvailableChatRooms(action.data);
-    //   break;
+
     case ActionTypes.SESSION_INITIAL_STATUS_RECEIVED:
       // Look for public rooms
       if (

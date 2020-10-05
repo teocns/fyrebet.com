@@ -25,7 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import UserAvatarWithActions from "../user/user-avatar";
 import theme from "../../themes/fyrebet/fyrebet";
-import LanguagePicker from "../pickers/language";
+
 import { Send as SendIcon } from "@material-ui/icons";
 import ChatMessagesScroll from "./messages-scroll";
 import OpenChatsMini from "./open-chats-mini";
@@ -101,7 +101,7 @@ const useStyles = makeStyles((theme) => {
 });
 
 export default function Chat() {
-  const [activeChatRoom, setActiveChatRoom] = useState(
+  const [ActiveChatRoom, setActiveChatRoom] = useState(
     chatStore.getActiveChatRoom()
   );
 
@@ -122,7 +122,7 @@ export default function Chat() {
   };
 
   const bindEventListeners = () => {
-    if (!activeChatRoom && !chatStore.isChatRoomLoading()) {
+    if (!ActiveChatRoom) {
       // We need to request a chat room. Load default!
       chatActions.loadDefaultChatRoom();
     }
@@ -162,7 +162,6 @@ export default function Chat() {
           alignItems: "center",
         }}
       >
-        <LanguagePicker />
         <OpenChatsMini />
       </div>
       <ChatMessagesScroll />
