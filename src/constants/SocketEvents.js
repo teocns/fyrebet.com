@@ -1,6 +1,8 @@
 const keyMirror = require("keymirror");
 
 const SocketEvents = keyMirror({
+  SESSION_ID: null, // Server sent session ID from handshake
+  CLIENT_DATA: null, // Client data
   AUTHENTICATE: null, // Client sends authentication request
   USER_DATA: null, // Fires when user data is sent from server to client
   USER_AVATAR_CHANGED: null,
@@ -14,6 +16,8 @@ const SocketEvents = keyMirror({
   CHAT_ROOM_DATA: null,
   CHAT_ROOM_DATA_REQUEST: null,
   CHAT_ROOM_LEAVE: null,
+  CHAT_ROOM_VISITED: null, // User is reading messages
+  CHAT_ROOM_BLURRED: null, // User closed or moved away from the chat
   HANDSHAKE_SOCKET_ID: null,
   INITIAL_STATUS: null,
   RATES_UPDATED: null,

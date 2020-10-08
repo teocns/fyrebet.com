@@ -11,7 +11,7 @@ import {
 
 import Langs from "../../constants/Langs";
 import ActionTypes from "../../constants/ActionTypes";
-import uiStore from "../../store/ui";
+import languageStore from "../../store/language";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import * as uiActions from "../../actions/ui";
 
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => {
 const LanguagePicker = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [CurrentLanguage, setCurrentLanguage] = useState(
-    Langs[uiStore.getLang()]
+    Langs[languageStore.getLang()]
   );
 
   const handleClick = (event) => {
@@ -44,18 +44,18 @@ const LanguagePicker = () => {
   const classes = useStyles();
 
   const onLanguageChanged = () => {
-    setCurrentLanguage(Langs[uiStore.getLang()]);
+    setCurrentLanguage(Langs[languageStore.getLang()]);
   };
 
   useEffect(() => {
-    uiStore.addChangeListener(
-      ActionTypes.UI_CHANGE_LANGUAGE,
+    languageStore.addChangeListener(
+      ActionTypes.LANGUAGE_CHANGE,
       onLanguageChanged
     );
 
     return () => {
-      uiStore.removeChangeListener(
-        ActionTypes.UI_CHANGE_LANGUAGE,
+      languageStore.removeChangeListener(
+        ActionTypes.LANGUAGE_CHANGE,
         onLanguageChanged
       );
     };

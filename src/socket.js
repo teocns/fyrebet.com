@@ -8,7 +8,7 @@ import bindChatSocketHandler from "./socket-handlers/chat";
 import bindRatesSocketHandler from "./socket-handlers/rates";
 import bindFortuneWheelHandler from "./socket-handlers/fortune-wheel";
 import bindBalanceHandler from "./socket-handlers/balance";
-
+import * as sessionActions from "./actions/session";
 var socketInstance = initialize();
 
 export function initialize() {
@@ -20,13 +20,13 @@ export function initialize() {
     transports: ["websocket"],
   });
 
+  // Bind listeners
+
   bindSessionSocketHandler(socket);
   bindChatSocketHandler(socket);
   bindRatesSocketHandler(socket);
   bindFortuneWheelHandler(socket);
   bindBalanceHandler(socket);
-
-  //bindEventHandlers(socket);
 
   return socket;
 }

@@ -62,7 +62,7 @@ class SessionStore extends EventEmitter {
     this.sessionId = sessionId;
   }
 
-  onInitialStatusReceived({ sessionId }) {
+  storeSessionId({ sessionId }) {
     this.setSessionId(sessionId);
     this.isInitialized = true;
   }
@@ -89,8 +89,8 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
     case ActionTypes.SESSION_AUTHENTICATION_TOKEN_RECEIVED:
       sessionStore.setAuthenticationToken(event.data);
       break;
-    case ActionTypes.SESSION_INITIAL_STATUS_RECEIVED:
-      sessionStore.onInitialStatusReceived({ sessionId: event.data.sessionId });
+    case ActionTypes.SESSION_ID_RECEIVED:
+      sessionStore.storeSessionId({ sessionId: event.data.sessionId });
       break;
 
     case ActionTypes.SESSION_USER_LOGOUT:

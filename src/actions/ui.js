@@ -66,7 +66,7 @@ export function changeLanguage(shortCode) {
   }
 
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_CHANGE_LANGUAGE,
+    actionType: ActionTypes.LANGUAGE_CHANGE,
     data: { shortCode },
   });
 }

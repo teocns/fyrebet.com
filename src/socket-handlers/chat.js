@@ -9,12 +9,11 @@ import ActionTypes from "../constants/ActionTypes";
 import chatStore from "../store/chat";
 
 const bindChatSocketHandler = (socket) => {
-  socket.on(SocketEvents.CHAT_MESSAGE_RECEIVED, (messageData) => {
-    chatActions.onChatMessageReceived(messageData);
+  socket.on(SocketEvents.INITIAL_STATUS, ({ publicChatRooms }) => {
+    chatActions.onPublicRoomsReceived(publicChatRooms);
   });
-
-  socket.on(SocketEvents.LAST_CHAT_MESSAGES, (userData) => {
-    chatActions.onChatStatusReceived(userData);
+  socket.on(SocketEvents.CHAT_MESSAGE_RECEIVED, (message) => {
+    chatActions.onChatMessageReceived(message);
   });
 
   socket.on(SocketEvents.CHAT_ROOM_DATA, (chatRoomData) => {
@@ -27,12 +26,14 @@ const bindChatSocketHandler = (socket) => {
     }
   });
 
-  chatStore.addChangeListener(
-    ActionTypes.CHAT_ROOM_CHANGE,
-    ({ chatRoomUUID }) => {
-      socket.emit(SocketEvents.CHAT_ROOM_DATA_REQUEST, { chatRoomUUID });
-    }
-  );
+  // chatStore.addChangeListener(
+  //   ActionTypes.CHAT_ROOM_CHANGE,
+  //   ({ chatRoomUUID }) => {
+  //     setTimeout(() => {
+  //       socket.emit(SocketEvents.CHAT_ROOM_DATA_REQUEST, { chatRoomUUID });
+  //     }, 175);
+  //   }
+  // );
 };
 
 export default bindChatSocketHandler;

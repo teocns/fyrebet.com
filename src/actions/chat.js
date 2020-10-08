@@ -13,11 +13,11 @@ export function sendMessage(messageText) {
 
   const activeChatRoom = chatStore.getActiveChatRoom();
 
-  if (!activeChatRoom || !activeChatRoom.UUID) return;
+  if (!activeChatRoom || !activeChatRoom.chatRoomUUID) return;
 
   let messageData = {
     messageText,
-    chatRoomUUID: activeChatRoom.UUID,
+    chatRoomUUID: activeChatRoom.chatRoomUUID,
   };
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_MESSAGE_SENT,
@@ -26,29 +26,34 @@ export function sendMessage(messageText) {
   socketSendMessage(SocketEvents.SEND_CHAT_MESSAGE, messageData);
 }
 
-export function onChatMessageReceived(messageData) {
-  if (!chatStore.hasChat(messageData.chatRoomUUID)) {
+export function onChatMessageReceived(message) {
+  if (!chatStore.chatRequiresFetching(message.chatRoomUUID)) {
     // Does not have chat room fetched, hence the store wouldn't know where to push the message.
     // Downloading the chat data
-    socketSendMessage(
-      SocketEvents.CHAT_ROOM_DATA_REQUEST,
-      messageData.chatRoomUUID
-    );
+    socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
+      chatRoomUUID: message.chatRoomUUID,
+    });
   } else {
     dispatcher.dispatch({
       actionType: ActionTypes.CHAT_MESSAGE_RECEIVED,
-      data: messageData,
+      data: { message },
     });
   }
 }
 
-export function getAvailableChatRooms() {}
-
 export function changeActiveChatRoom(chatRoomUUID) {
+  // Dispatch chained events
+
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_ROOM_CHANGE,
     data: { chatRoomUUID },
   });
+  chatStore.chatRequiresFetching(chatRoomUUID) &&
+    setTimeout(() => {
+      socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
+        chatRoomUUID,
+      });
+    }, 75);
 }
 export function onChatRoomDataReceived(chatRoomData) {
   dispatcher.dispatch({
@@ -57,10 +62,10 @@ export function onChatRoomDataReceived(chatRoomData) {
   });
 }
 
-export function onChatStatusReceived(chatStatus) {
+export function onPublicRoomsReceived(publicRooms) {
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_STATUS_RECEIVED,
-    data: chatStatus,
+    actionType: ActionTypes.CHAT_PUBLIC_ROOMS_RECEIVED,
+    data: { publicRooms },
   });
 }
 
@@ -99,10 +104,12 @@ export async function startPrivateChat(userUUID) {
   }
 }
 
-export async function onUserOpenChatsReceived(recentChats) {
-  dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_OPEN_ROOMS_CHANGED,
-    data: { recentChats },
+export async function onUserOpenChatsReceived(openChats) {
+  setTimeout(() => {
+    dispatcher.dispatch({
+      actionType: ActionTypes.CHAT_OPEN_ROOMS_CHANGED,
+      data: { openChats },
+    });
   });
 }
 
@@ -129,7 +136,7 @@ export async function onLanguageChanged(shortCode) {
     closeChat(publicChatRoom.chatRoomUUID);
   }
   // What was the active chat room?
-  const activeChat = chatStore.activeChatRoom;
+  const activeChat = chatStore.activeChatRoomUUID;
   if (
     activeChat &&
     publicChatRoom &&

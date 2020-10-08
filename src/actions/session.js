@@ -5,9 +5,11 @@ import Fetcher from "../classes/fetcher";
 import SocketEvents from "../constants/SocketEvents";
 
 import sessionStore from "../store/session";
+import languageStore from "../store/language";
 
 import { sendMessage } from "../socket";
 import Environment from "../constants/Environment";
+import Error from "../classes/Error";
 
 export function userEmailIsRegistered(email) {
   return new Promise((resolve) => {
@@ -62,13 +64,6 @@ export function onInitialStatusReceived(status) {
     actionType: ActionTypes.SESSION_INITIAL_STATUS_RECEIVED,
     data: status,
   });
-
-  if ("chat" in status) {
-    dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_STATUS_RECEIVED,
-      data: status.chat,
-    });
-  }
 
   if ("rates" in status) {
     dispatcher.dispatch({
@@ -128,3 +123,20 @@ export function onAvatarChanged(avatar) {
     data: { avatar },
   });
 }
+export function sendClientData() {
+  const data = {};
+  // Gather browser info
+  if (window.navigator) {
+    data.userAgent = window.navigator.userAgent;
+    data.languages = window.navigator.languages;
+    data.language = window.navigator.language;
+  }
+  //data.appLanguage = languageStore.getLang();
+  sendMessage(SocketEvents.CLIENT_DATA, data);
+}
+export const onSessionIdReceived = (sessionId) => {
+  dispatcher.dispatch({
+    actionType: ActionTypes.SESSION_ID_RECEIVED,
+    data: { sessionId },
+  });
+};

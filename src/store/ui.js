@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
-import Langs from "../constants/Langs";
+
 class UIStore extends EventEmitter {
   constructor(params) {
     super(params);
@@ -21,26 +21,6 @@ class UIStore extends EventEmitter {
     };
   }
 
-  getLang() {
-    if (undefined === this.lang) {
-      let storedLang = localStorage.getItem("lang");
-      if (storedLang) {
-        return (this.lang = storedLang);
-      } else {
-        this.setLang(Langs.EN.shortCode);
-        return this.lang;
-      }
-    }
-    return this.lang;
-  }
-  setLang(lang) {
-    if (!(lang in Langs)) {
-      return;
-    }
-    // Save to local storage
-    localStorage.setItem("lang", lang);
-    this.lang = lang;
-  }
   addChangeListener(event, callback) {
     this.on(event, callback);
   }
@@ -108,9 +88,7 @@ dispatcher.register((action) => {
     case ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE:
       uiStore.toggleUserProfileModal();
       break;
-    case ActionTypes.UI_CHANGE_LANGUAGE:
-      uiStore.setLang(action.data.shortCode);
-      break;
+
     default:
       break;
   }

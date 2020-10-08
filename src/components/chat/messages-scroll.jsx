@@ -74,8 +74,19 @@ const useStyles = makeStyles((theme) => {
 
 const ChatMessagesScroll = () => {
   const [messages, setMessages] = useState(chatStore.getActiveChatMessages());
+  const activeChat = chatStore.getActiveChatRoom();
+  const isLoading = !activeChat || activeChat.isLoading ? true : false;
 
-  const MessagesLoaded = Array.isArray(messages);
+  window.a = () => {
+    console.log(activeChat);
+  };
+  window.b = () => {
+    console.log(messages);
+  };
+
+  window.c = () => {
+    console.log(isLoading);
+  };
 
   useEffect(() => {
     bindEventListeners();
@@ -84,35 +95,55 @@ const ChatMessagesScroll = () => {
     return unbindEventListeners;
   });
 
-  const onChatMessagesLoaded = () => {
-    setMessages(chatStore.getActiveChatMessages());
+  const onChatRoomDataReceived = ({ chatRoomUUID }) => {
+    // Check if we really need to change this
+    if (chatRoomUUID === chatStore.activeChatRoomUUID) {
+      setMessages([...chatStore.getActiveChatMessages()]);
+    }
   };
-  const onMessageReceived = () => {
-    // Push message to the stack of 50 messges in the chat.
+
+  const onChatRoomChanged = () => {
     setMessages([...chatStore.getActiveChatMessages()]);
+  };
+
+  const onMessageReceived = ({ message }) => {
+    // Check if we really need to change this
+    if (message.chatRoomUUID === activeChat.chatRoomUUID) {
+      setMessages([...chatStore.getActiveChatMessages()]);
+    }
   };
   const bindEventListeners = () => {
     chatStore.addChangeListener(
       ActionTypes.CHAT_ROOM_DATA_RECEIVED,
-      onChatMessagesLoaded
-    ); // When component mounted, subscribe to dispatcher events to receive each new message.
+      onChatRoomDataReceived
+    );
 
     chatStore.addChangeListener(
       ActionTypes.CHAT_MESSAGE_RECEIVED,
       onMessageReceived
-    ); // When component mounted, subscribe to dispatcher events to receive each new message.
+    );
+
+    chatStore.addChangeListener(
+      ActionTypes.CHAT_ROOM_CHANGE,
+      onChatRoomChanged
+    );
   };
 
   const unbindEventListeners = () => {
     chatStore.removeChangeListener(
       ActionTypes.CHAT_ROOM_DATA_RECEIVED,
-      onChatMessagesLoaded
+      onChatRoomDataReceived
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
 
     // On component unmounting, remove previous listener.
     chatStore.removeChangeListener(
       ActionTypes.CHAT_MESSAGE_RECEIVED,
       onMessageReceived
+    );
+
+    chatStore.removeChangeListener(
+      ActionTypes.CHAT_ROOM_CHANGE,
+      onChatRoomChanged
     );
   };
 
@@ -124,7 +155,7 @@ const ChatMessagesScroll = () => {
   };
 
   const renderChatMessages = () => {
-    if (MessagesLoaded) {
+    if (!isLoading) {
       // Messages populated from store - it is safe to render messages
       return messages.map((message, index) => {
         // let isLastMessage = index === messages.length - 1;
@@ -216,4 +247,4 @@ const ChatMessagesScroll = () => {
   );
 };
 
-export default ChatMessagesScroll;
+export default React.memo(ChatMessagesScroll);

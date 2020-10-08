@@ -48,7 +48,7 @@ const OpenChatsMini = () => {
     chatStore.getActiveChatRoom()
   );
 
-  const OpenChatsUUIDs = Object.keys(OpenChatRooms).reverse();
+  const OpenChatsUUIDs = Object.keys(OpenChatRooms);
   const hasAny =
     OpenChatRooms && Array.isArray(OpenChatsUUIDs) && OpenChatsUUIDs.length > 0;
 
@@ -110,23 +110,25 @@ const OpenChatsMini = () => {
           }
           const IsLoading = "isLoading" in chatRoom;
 
-          const isNotificationPopup = () => {};
+          const IsActive = !!ActiveChatRoom
+            ? ActiveChatRoom.chatRoomUUID === chatRoomUUID
+            : false;
           const render = () => {
             if (IsLoading) {
               return <Skeleton variant="circle" className={classes.avatar} />;
             }
-            const { unreadCount, chatRoomType, iconUrl } = chatRoom;
+            const { unreadMessages, chatRoomType, iconUrl } = chatRoom;
 
             const avatarElement = (
               <Avatar className={classes.avatar} src={assetUrl(iconUrl)} />
             );
-            if (unreadCount) {
+            if (unreadMessages) {
               return (
                 <Badge
                   anchorOrigin={{ vertical: "top", horizontal: "right" }}
                   overlap="circle"
                   color="secondary"
-                  badgeContent={unreadCount}
+                  badgeContent={unreadMessages}
                 >
                   {avatarElement}
                 </Badge>
@@ -138,6 +140,18 @@ const OpenChatsMini = () => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 1.12 }}
+              initial={{
+                y: 0,
+                scale: 1,
+              }}
+              animate={{
+                y: IsActive ? -3 : 0,
+                scale: IsActive ? 1.05 : 1,
+              }}
+              transition={{
+                duration: 0.125,
+                type: "spring",
+              }}
               style={{ cursor: "pointer", marginRight: theme.spacing(1) }}
               key={chatRoomUUID}
               onClick={() => {
