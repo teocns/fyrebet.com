@@ -30,6 +30,8 @@ import { Send as SendIcon } from "@material-ui/icons";
 import ChatMessagesScroll from "./messages-scroll";
 import OpenChatsMini from "./open-chats-mini";
 
+import ChatSearch from "./search";
+
 const useStyles = makeStyles((theme) => {
   return {
     root: {
@@ -165,8 +167,10 @@ export default function Chat() {
         style={{
           display: "inline-flex",
           alignItems: "center",
+          flexDirection: "column",
         }}
       >
+        <ChatSearch />
         <OpenChatsMini />
       </div>
       <ChatMessagesScroll />
