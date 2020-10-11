@@ -27,7 +27,8 @@ export function sendMessage(messageText) {
 }
 
 export function onChatMessageReceived(message) {
-  if (!chatStore.chatRequiresFetching(message.chatRoomUUID)) {
+  debugger;
+  if (chatStore.chatRequiresFetching(message.chatRoomUUID)) {
     // Does not have chat room fetched, hence the store wouldn't know where to push the message.
     // Downloading the chat data
     socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
@@ -148,3 +149,6 @@ export async function onLanguageChanged(shortCode) {
     });
   }
 }
+export const triggerChatVisited = (chatRoomUUID) => {
+  socketSendMessage(SocketEvents.CHAT_ROOM_VISITED, { chatRoomUUID });
+};

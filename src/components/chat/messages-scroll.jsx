@@ -42,7 +42,10 @@ const useStyles = makeStyles((theme) => {
       marginRight: theme.spacing(2),
     },
     username: {
-      color: "",
+      fontSize: 13,
+    },
+    messageText: {
+      fontSize: 13,
     },
     skeletonTextContainer: {
       display: "flex",
@@ -92,6 +95,10 @@ const ChatMessagesScroll = () => {
     bindEventListeners();
     // Scroll to the bottom
     scrollChatDown();
+    !isLoading &&
+      setTimeout(() => {
+        triggerChatVisited();
+      });
     return unbindEventListeners;
   });
 
@@ -129,6 +136,11 @@ const ChatMessagesScroll = () => {
     );
   };
 
+  const triggerChatVisited = () => {
+    // Should trigger when messages are clearly visible to the user.
+    // This sets all the messages to 'seen'
+    chatActions.triggerChatVisited(activeChat.chatRoomUUID);
+  };
   const unbindEventListeners = () => {
     chatStore.removeChangeListener(
       ActionTypes.CHAT_ROOM_DATA_RECEIVED,
@@ -192,12 +204,8 @@ const ChatMessagesScroll = () => {
   let renderMessageBox = ({ message }) => {
     return (
       <div key={Math.random()}>
-        <motion.div
-        // initial={{ opacity: 0, scale: 0.75, bottom: 0 }}
-        // animate={{ opacity: 1, scale: 1, bottom: 0 }}
-        // exit={{ opacity: 0 }}
-        >
-          <Paper className={classes.messageBox}>
+        <motion.div>
+          <div className={classes.messageBox}>
             <UserAvatarWithActions
               userUUID={message.userUUID}
               avatarUrl={message.avatarUrl}
@@ -218,9 +226,11 @@ const ChatMessagesScroll = () => {
               >
                 {message.username}
               </Typography>
-              <span>{message.messageText}</span>
+              <Typography className={classes.messageText} variant="body2">
+                {message.messageText}
+              </Typography>
             </div>
-          </Paper>
+          </div>
         </motion.div>
       </div>
     );

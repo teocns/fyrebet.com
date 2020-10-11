@@ -114,7 +114,8 @@ const OpenChatsMini = () => {
             ? ActiveChatRoom.chatRoomUUID === chatRoomUUID
             : false;
           const render = () => {
-            if (IsLoading) {
+            if (IsLoading && !chatRoom.iconUrl) {
+              // If chat is loading and chat does not contain user icon, display skeleton
               return <Skeleton variant="circle" className={classes.avatar} />;
             }
             const { unreadMessages, chatRoomType, iconUrl } = chatRoom;

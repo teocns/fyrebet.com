@@ -144,7 +144,9 @@ class ChatStore extends EventEmitter {
     this.addOpenChat(chatRoomUUID);
     if (this.chatRequiresFetching(chatRoomUUID)) {
       // Set chat to loading as it's being requested
-      this.chatRooms[chatRoomUUID] = { isLoading: true, chatRoomUUID };
+      this.chatRooms[chatRoomUUID] = !this.hasChat(chatRoomUUID)
+        ? Object.assign({ isLoading: true }, this.chatRooms[chatRoomUUID])
+        : { isLoading: true };
     }
   }
   addOpenChat(chatRoomUUID) {

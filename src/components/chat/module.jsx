@@ -112,8 +112,13 @@ export default function Chat() {
   const onEnterMessageKeyPress = (event) => {
     if (event.key === "Enter") {
       // If enter is pressed...
-      chatActions.sendMessage(event.target.value.trim()); // Call actions function that interfaces with the server
+      const messagePayload = event.target.value.trim();
       event.target.value = ""; // Reset the textfield text to empty
+      setTimeout(() => {
+        chatActions.sendMessage(messagePayload); // Call actions function that interfaces with the server
+      });
+      event.preventDefault(); // Prevent default so ENTER key does not really insert in the chat
+      return false;
     }
   };
 
