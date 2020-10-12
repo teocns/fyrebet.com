@@ -152,3 +152,9 @@ export async function onLanguageChanged(shortCode) {
 export const triggerChatVisited = (chatRoomUUID) => {
   socketSendMessage(SocketEvents.CHAT_ROOM_VISITED, { chatRoomUUID });
 };
+
+
+export const searchQuery = (query) => {
+  let results = await Fetcher.get('/chatSearchQuery', {query});
+  return results;
+}

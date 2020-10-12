@@ -30,7 +30,7 @@ import { Send as SendIcon } from "@material-ui/icons";
 import ChatMessagesScroll from "./messages-scroll";
 import OpenChatsMini from "./open-chats-mini";
 
-import ChatSearch from "./search";
+import ChatSearch from "./search-box";
 
 const useStyles = makeStyles((theme) => {
   return {

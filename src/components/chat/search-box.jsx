@@ -42,6 +42,7 @@ const useStyles = makeStyles((theme) => {
       border: "none",
       outline: "none",
       height: "100%",
+      color: "white",
       width: "100%",
       background: "transparent",
       overflow: "hidden",
@@ -59,6 +60,11 @@ const useStyles = makeStyles((theme) => {
 
 // Displays old user chats as well as
 const ChatSearch = () => {
+  const onQuery = (event) => {
+    let searchQuery = event.target.value;
+    chatActions.searchQuery(searchQuery);
+  };
+
   const classes = useStyles();
   return (
     <Paper className={classes.chatTextFieldPaper} elevation={0}>
