@@ -10,6 +10,7 @@ import {
   TextField,
   Divider,
   IconButton,
+  Tooltip,
 } from "@material-ui/core/";
 import Skeleton from "@material-ui/lab/Skeleton";
 
@@ -24,14 +25,21 @@ import assetUrl from "../../helpers/assetUrl";
 import { motion, AnimatePresence } from "framer-motion";
 
 import UserAvatarWithActions from "../user/user-avatar";
+
 import theme from "../../themes/fyrebet/fyrebet";
 
-import { Send as SendIcon } from "@material-ui/icons";
-import ChatMessagesScroll from "./messages-scroll";
-import OpenChatsMini from "./open-chats-mini";
+import { Search as SearchIcon } from "@material-ui/icons";
+import ChatMessagesScroll from "./HistoryScroll";
+//import PublicEnvironmentNotifications from "./PublicInteractionRow.jsx";
 
-import ChatSearch from "./search-box";
+import ChatSearchHeader from "./SearchHeader";
+import ChatSearchResultsScroll from "./SearchResultsScroll";
 
+import * as ChatConstants from "../../constants/Chat";
+
+import HistoryScroll from "./HistoryScroll";
+import ChatInfoHeader from "./ChatInfoHeader";
+import ChatThreadFooter from "./ChatThreadFooter";
 const useStyles = makeStyles((theme) => {
   return {
     root: {
@@ -40,6 +48,10 @@ const useStyles = makeStyles((theme) => {
     menuButton: {},
     title: {
       flexGrow: 1,
+    },
+    chatDefaultHeader: {
+      display: "inline-flex",
+      alignItems: "center",
     },
     messageBox: {
       margin: 0,
@@ -79,53 +91,26 @@ const useStyles = makeStyles((theme) => {
       overflowX: "hidden",
       // scrollbarWidth: 0,
     },
-    chatTextFieldPaper: {
-      borderRadius: "1.25rem",
-      flex: "1",
-    },
-    chatTextField: {
-      border: "none",
-      display: "flex",
-      flex: "1",
-      outline: "none",
-      height: "0",
-      background: "transparent",
-      //backgroundColor: "#00000025",
-      padding: "1rem",
-      resize: "none",
-      overflow: "hidden",
-    },
-    chatSendMessageBox: {
-      margin: theme.spacing(1),
-      marginRight: 0, // 0 due to button's integrated margin
-    },
   };
 });
 
 export default function Chat() {
   const [ActiveChatRoom, setActiveChatRoom] = useState(
-    chatStore.getActiveChatRoom()
+    chatStore.getActiveChatThread()
   );
+
+  const [ChatMode, setChatMode] = useState(chatStore.getChatMode());
 
   const classes = useStyles();
 
   // Subscribe chat message updates, shall we?
 
-  const onEnterMessageKeyPress = (event) => {
-    if (event.key === "Enter") {
-      // If enter is pressed...
-      const messagePayload = event.target.value.trim();
-      event.target.value = ""; // Reset the textfield text to empty
-      setTimeout(() => {
-        chatActions.sendMessage(messagePayload); // Call actions function that interfaces with the server
-      });
-      event.preventDefault(); // Prevent default so ENTER key does not really insert in the chat
-      return false;
-    }
+  const onChatRoomDataReceived = () => {
+    setActiveChatRoom(chatStore.getActiveChatThread());
   };
 
-  const onChatRoomDataReceived = () => {
-    setActiveChatRoom(chatStore.getActiveChatRoom());
+  const onChatModeChanged = () => {
+    setChatMode(chatStore.getChatMode());
   };
 
   const bindEventListeners = () => {
@@ -134,25 +119,78 @@ export default function Chat() {
       chatActions.loadDefaultChatRoom();
     }
     chatStore.addChangeListener(
-      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
+      ActionTypes.CHAT_THREAD_DATA_RECEIVED,
       onChatRoomDataReceived
+    );
+
+    chatStore.addChangeListener(
+      ActionTypes.CHAT_MODE_CHANGE,
+      onChatModeChanged
     );
   };
 
   const unbindEventListeners = () => {
     chatStore.removeChangeListener(
-      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
+      ActionTypes.CHAT_THREAD_DATA_RECEIVED,
       onChatRoomDataReceived
+    );
+    chatStore.removeChangeListener(
+      ActionTypes.CHAT_MODE_CHANGE,
+      onChatModeChanged
     );
   };
   useEffect(() => {
     bindEventListeners();
     return unbindEventListeners;
   });
-  const autoGrowTextarea = (evt) => {
-    const element = evt.currentTarget;
-    element.style.height = "0px";
-    element.style.height = `calc(${element.scrollHeight}px - 2rem)`;
+
+  const renderList = () => {
+    debugger;
+    switch (ChatMode) {
+      case ChatConstants.ChatModeStatuses.IS_CHATTING:
+        return <ChatMessagesScroll />;
+
+      case ChatConstants.ChatModeStatuses.IS_SEARCHING:
+        return <ChatSearchResultsScroll />;
+
+      default:
+        // Default shows user history
+        return <HistoryScroll />;
+    }
+  };
+  const openSearch = () => {
+    chatActions.changeChatMode(ChatConstants.ChatModeStatuses.IS_SEARCHING);
+  };
+  const renderHeader = () => {
+    switch (ChatMode) {
+      case ChatConstants.ChatModeStatuses.IS_CHATTING:
+        return <ChatInfoHeader />;
+        break;
+      case ChatConstants.ChatModeStatuses.IS_SEARCHING:
+        return <ChatSearchHeader />;
+        break;
+      default:
+        // IS_HISTORY
+        return (
+          <div className={classes.chatDefaultHeader}>
+            <Tooltip
+              title="Search for messages and users"
+              aria-label={"Search"}
+            >
+              <IconButton
+                aria-controls={`go-back`}
+                aria-haspopup="true"
+                onClick={openSearch}
+              >
+                <SearchIcon size="small" />
+              </IconButton>
+            </Tooltip>
+          </div>
+        );
+        break;
+    }
+
+    return;
   };
   return (
     <Box
@@ -170,36 +208,14 @@ export default function Chat() {
           flexDirection: "column",
         }}
       >
-        <ChatSearch />
-        <OpenChatsMini />
-      </div>
-      <ChatMessagesScroll />
+        {renderHeader()}
 
-      <Box
-        className={classes.chatSendMessageBox}
-        display="inline-flex"
-        flexDirection="row"
-        flexWrap="nowrap"
-      >
-        <Paper className={classes.chatTextFieldPaper}>
-          <textarea
-            type="text"
-            className={classes.chatTextField}
-            //onKeyPress={onEnterMessageKeyPress}
-            placeholder="Say something..."
-            onInput={autoGrowTextarea}
-            onKeyPress={onEnterMessageKeyPress}
-          ></textarea>
-        </Paper>
-        <IconButton
-          style={{
-            marginLeft: theme.spacing(0.5),
-            marginRight: theme.spacing(0.5),
-          }}
-        >
-          <SendIcon />
-        </IconButton>
-      </Box>
+        {/* <PublicEnvironmentNotifications /> */}
+      </div>
+
+      {renderList()}
+
+      <ChatThreadFooter />
     </Box>
   );
 }

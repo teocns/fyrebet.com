@@ -20,20 +20,11 @@ const bindChatSocketHandler = (socket) => {
     chatActions.onChatRoomDataReceived(chatRoomData);
   });
 
-  socket.on(SocketEvents.USER_DATA, ({ recentChats }) => {
-    if (recentChats && Array.isArray(recentChats)) {
-      chatActions.onUserOpenChatsReceived(recentChats);
+  socket.on(SocketEvents.USER_DATA, ({ chatHistory }) => {
+    if (chatHistory && Array.isArray(chatHistory)) {
+      chatActions.onUserChatHistoryReceived(chatHistory);
     }
   });
-
-  // chatStore.addChangeListener(
-  //   ActionTypes.CHAT_ROOM_CHANGE,
-  //   ({ chatRoomUUID }) => {
-  //     setTimeout(() => {
-  //       socket.emit(SocketEvents.CHAT_ROOM_DATA_REQUEST, { chatRoomUUID });
-  //     }, 175);
-  //   }
-  // );
 };
 
 export default bindChatSocketHandler;

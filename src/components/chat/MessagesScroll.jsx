@@ -75,11 +75,13 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
+// This component assumes that data has been prefetched. Given that the user will
 const ChatMessagesScroll = () => {
-  const [messages, setMessages] = useState(chatStore.getActiveChatMessages());
-  const activeChat = chatStore.getActiveChatRoom();
+  const [messages, setMessages] = useState(
+    chatStore.getActiveChatThread().messages
+  );
+  const activeChat = chatStore.getActiveChatThread();
   const isLoading = !activeChat || activeChat.isLoading ? true : false;
-
   window.a = () => {
     console.log(activeChat);
   };
@@ -201,7 +203,7 @@ const ChatMessagesScroll = () => {
       </Paper>
     );
   };
-  let renderMessageBox = ({ message }) => {
+  const renderMessageBox = ({ message }) => {
     return (
       <div key={Math.random()}>
         <motion.div>

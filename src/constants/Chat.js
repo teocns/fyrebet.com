@@ -38,3 +38,9 @@ export const Types = KeyMirror({
   PUBLIC: null,
   GROUP: null,
 });
+
+export const ChatModeStatuses = KeyMirror({
+  IS_CHATTING: null,
+  IS_SEARCHING: null,
+  IS_HISTORY: null,
+});

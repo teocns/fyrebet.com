@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import UserAvatarWithActions from "../user/user-avatar";
 import theme from "../../themes/fyrebet/fyrebet";
 import { Search as SearchIcon } from "@material-ui/icons";
+import GoBackToHistoryButton from "./GoBackToHistoryButton";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -34,19 +35,19 @@ const useStyles = makeStyles((theme) => {
       flex: "1",
       height: "2rem",
       padding: "0 1rem",
+      marginRight: theme.spacing(2),
       overflow: "hidden",
       display: "inline-flex",
-      background: theme.palette.inputOnPaper || "gray",
+      background: theme.palette.input.comment.background,
     },
     chatTextField: {
       border: "none",
       outline: "none",
       height: "100%",
-      color: "white",
+      color: theme.palette.text.primary,
       width: "100%",
       background: "transparent",
       overflow: "hidden",
-      fontSize: "11px",
       display: "flex",
       flex: 1,
     },
@@ -59,32 +60,44 @@ const useStyles = makeStyles((theme) => {
 });
 
 // Displays old user chats as well as
-const ChatSearch = () => {
+const ChatSearchHeader = () => {
   const onQuery = (event) => {
     let searchQuery = event.target.value;
-    chatActions.searchQuery(searchQuery);
+    chatActions.searchQuery(searchQuery).then((result) => {
+      console.log(result);
+    });
   };
 
   const classes = useStyles();
+
+  // useEffect(() => {
+  //   chatStore.addChangeListener(ActionTypes.CHAT_ROOM_SEARCH_DATA,  onQueryEnumReceived);
+  //   return () => {
+  //     chatStore.removeChangeListener(ActionTypes.CHAT_ROOM_SEARCH_DATA,  onQueryEnumReceived);
+  //   }
+  // });
   return (
-    <Paper className={classes.chatTextFieldPaper} elevation={0}>
-      <input
-        size="small"
-        variant="standard"
-        type="text"
-        className={classes.chatTextField}
-        placeholder="Find or start a conversation"
-      />
-      <IconButton
-        disabled={true}
-        style={{
-          paddingRight: 0,
-        }}
-      >
-        <SearchIcon fontSize="small" />
-      </IconButton>
-    </Paper>
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "between",
+        width: "100%",
+      }}
+    >
+      <GoBackToHistoryButton />
+      <Paper className={classes.chatTextFieldPaper} elevation={0}>
+        <input
+          size="small"
+          variant="standard"
+          type="text"
+          className={classes.chatTextField}
+          placeholder="Find or start a conversation"
+          onChange={onQuery}
+        />
+      </Paper>
+    </div>
   );
 };
 
-export default ChatSearch;
+export default ChatSearchHeader;

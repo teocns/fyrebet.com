@@ -28,7 +28,11 @@ const theme = createMuiTheme({
       light: "#8D99AE",
       dark: "#000000",
     },
+    input: {
+      comment: { background: "#F0F2F5" },
+    },
   },
+
   typography: {
     fontSize: 14,
   },

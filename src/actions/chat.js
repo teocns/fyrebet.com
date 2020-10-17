@@ -8,10 +8,12 @@ import { ChatPublicRooms, Types } from "../constants/Chat";
 
 import Fetcher from "../classes/fetcher";
 
+import ChatHistoryThread from "../models/ChatHistoryThread";
+import * as ChatConstants from "../constants/Chat";
 export function sendMessage(messageText) {
   //console.log("sending message from user chat actions");
 
-  const activeChatRoom = chatStore.getActiveChatRoom();
+  const activeChatRoom = chatStore.getActiveChatThread();
 
   if (!activeChatRoom || !activeChatRoom.chatRoomUUID) return;
 
@@ -27,7 +29,6 @@ export function sendMessage(messageText) {
 }
 
 export function onChatMessageReceived(message) {
-  debugger;
   if (chatStore.chatRequiresFetching(message.chatRoomUUID)) {
     // Does not have chat room fetched, hence the store wouldn't know where to push the message.
     // Downloading the chat data
@@ -44,21 +45,39 @@ export function onChatMessageReceived(message) {
 
 export function changeActiveChatRoom(chatRoomUUID) {
   // Dispatch chained events
-
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_ROOM_CHANGE,
     data: { chatRoomUUID },
   });
+  // Check if chat requires fetching
   chatStore.chatRequiresFetching(chatRoomUUID) &&
     setTimeout(() => {
       socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
         chatRoomUUID,
       });
     }, 75);
+
+  // Finally, check if chat mode change should be fired, i.e the user was in HISTORY
+  if (chatStore.getChatMode() !== ChatConstants.ChatModeStatuses.IS_CHATTING) {
+    dispatcher.dispatch({
+      actionType: ActionTypes.CHAT_MODE_CHANGE,
+      data: {
+        chatMode: ChatConstants.ChatModeStatuses.IS_CHATTING,
+      },
+    });
+  }
 }
+
+export const getUserChats = async (skip = 0, limit = 25) => {
+  return await Fetcher.get("userChats", { s: skip, l: limit });
+};
+
+window.getChats = async (skip, limit) => {
+  return await getUserChats(skip, limit);
+};
 export function onChatRoomDataReceived(chatRoomData) {
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_ROOM_DATA_RECEIVED,
+    actionType: ActionTypes.CHAT_THREAD_DATA_RECEIVED,
     data: chatRoomData,
   });
 }
@@ -105,11 +124,14 @@ export async function startPrivateChat(userUUID) {
   }
 }
 
-export async function onUserOpenChatsReceived(openChats) {
+/**
+ * @param {ChatHistoryThread[]} chatHistory
+ */
+export async function onUserChatHistoryReceived(chatHistory) {
   setTimeout(() => {
     dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_OPEN_ROOMS_CHANGED,
-      data: { openChats },
+      actionType: ActionTypes.CHAT_HISTORY_RECEIVED,
+      data: { chatHistory },
     });
   });
 }
@@ -122,7 +144,7 @@ export function closeChat(chatRoomUUID) {
     },
     () => {
       dispatcher.dispatch({
-        actionType: ActionTypes.CHAT_ROOM_CLOSE,
+        actionType: ActionTypes.CHAT_THREAD_CLOSE,
         data: { chatRoomUUID },
       });
     },
@@ -153,8 +175,69 @@ export const triggerChatVisited = (chatRoomUUID) => {
   socketSendMessage(SocketEvents.CHAT_ROOM_VISITED, { chatRoomUUID });
 };
 
+export const searchQuery = async (query) => {
+  // Quick query validation
+  query = query ? query.toString().trim().toLowerCase() : "";
+  if (!query) {
+    return;
+  }
 
-export const searchQuery = (query) => {
-  let results = await Fetcher.get('/chatSearchQuery', {query});
-  return results;
-}
+  // Inform dispatcher we are performing chat queries
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_SEARCH_QUERY,
+    data: { searchQuery: query, isLoadingChatResults: true }, // also set isLoading to show preload
+  });
+
+  // Optimize search results keeping. Iterate through the search-query
+  // If results' column-values match the search query, don't remove those rows.
+  const searchColumns = ["username", "lastMessageText"];
+  const searchPredicate = (result) => {
+    const resultColumns = Object.keys(result);
+    for (let searchColumn of searchColumns) {
+      if (
+        resultColumns.includes(searchColumn) &&
+        result[searchColumn] &&
+        result[searchColumn].toString().toLowerCase().includes(query)
+      ) {
+        // Occurrence found
+        return true;
+      }
+    }
+    // No matching value has been found
+    return false;
+  };
+  const lastResults = chatStore.getSearchResults();
+  const newResults = lastResults.filter(searchPredicate);
+  // Dispatch the new results with removed and kept occurrences
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
+    data: { searchResults: newResults, isLoadingChatResults: true }, // It is stil loading, keep preload
+  });
+
+  // To avoid spam, make sure only one api call gets through every 1 second
+  // If CHAT_PREPARE_SEARCH_API_CALL dispatches again, it will clear any previous timers
+  // hence nulling any "queued" api calls and rolling in a new one awaiting to fire
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_PREPARE_SEARCH_API_CALL,
+    data: {
+      timer: setTimeout(async () => {
+        // Fetch search query results
+        const searchResults = await Fetcher.get("/chatSearchQuery", { query });
+        if (Array.isArray(searchResults)) {
+          dispatcher.dispatch({
+            actionType: ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
+            data: { searchResults, isLoadingChatResults: false },
+          });
+        }
+      }, 1000),
+      willExecuteAt: parseInt(Date.now() / 1000) + 1,
+    },
+  });
+};
+
+export const changeChatMode = async (chatMode) => {
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_MODE_CHANGE,
+    data: { chatMode },
+  });
+};
