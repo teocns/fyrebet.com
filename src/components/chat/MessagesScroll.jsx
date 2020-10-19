@@ -78,10 +78,11 @@ const useStyles = makeStyles((theme) => {
 // This component assumes that data has been prefetched. Given that the user will
 const ChatMessagesScroll = () => {
   const [messages, setMessages] = useState(
-    chatStore.getActiveChatThread().messages
+    chatStore.getActiveChatThreadMessages()
   );
   const activeChat = chatStore.getActiveChatThread();
-  const isLoading = !activeChat || activeChat.isLoading ? true : false;
+  const isLoading = !activeChat || activeChat.isLoading;
+
   window.a = () => {
     console.log(activeChat);
   };
@@ -104,27 +105,27 @@ const ChatMessagesScroll = () => {
     return unbindEventListeners;
   });
 
-  const onChatRoomDataReceived = ({ chatRoomUUID }) => {
-    // Check if we really need to change this
-    if (chatRoomUUID === chatStore.activeChatRoomUUID) {
-      setMessages([...chatStore.getActiveChatMessages()]);
+  const onChatThreadDataReceived = ({chatThread}) => {
+    // Check if we really need to update this component
+    if (chatStore.activeChatRoomUUID === chatThread.chatRoomUUID) {
+      setMessages([...chatStore.getActiveChatThreadMessages()]);
     }
   };
 
   const onChatRoomChanged = () => {
-    setMessages([...chatStore.getActiveChatMessages()]);
+    setMessages([...chatStore.getActiveChatThreadMessages()]);
   };
 
   const onMessageReceived = ({ message }) => {
     // Check if we really need to change this
     if (message.chatRoomUUID === activeChat.chatRoomUUID) {
-      setMessages([...chatStore.getActiveChatMessages()]);
+      setMessages([...chatStore.getActiveChatThreadMessages()]);
     }
   };
   const bindEventListeners = () => {
     chatStore.addChangeListener(
-      ActionTypes.CHAT_ROOM_DATA_RECEIVED,
-      onChatRoomDataReceived
+      ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+      onChatThreadDataReceived
     );
 
     chatStore.addChangeListener(
@@ -146,7 +147,7 @@ const ChatMessagesScroll = () => {
   const unbindEventListeners = () => {
     chatStore.removeChangeListener(
       ActionTypes.CHAT_ROOM_DATA_RECEIVED,
-      onChatRoomDataReceived
+      onChatThreadDataReceived
     ); // When component mounted, subscribe to dispatcher events to receive each new message.
 
     // On component unmounting, remove previous listener.

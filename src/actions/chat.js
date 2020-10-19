@@ -10,6 +10,7 @@ import Fetcher from "../classes/fetcher";
 
 import ChatHistoryThread from "../models/ChatHistoryThread";
 import * as ChatConstants from "../constants/Chat";
+import sessionStore from "../store/session";
 export function sendMessage(messageText) {
   //console.log("sending message from user chat actions");
 
@@ -44,19 +45,6 @@ export function onChatMessageReceived(message) {
 }
 
 export function changeActiveChatRoom(chatRoomUUID) {
-  // Dispatch chained events
-  dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_ROOM_CHANGE,
-    data: { chatRoomUUID },
-  });
-  // Check if chat requires fetching
-  chatStore.chatRequiresFetching(chatRoomUUID) &&
-    setTimeout(() => {
-      socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
-        chatRoomUUID,
-      });
-    }, 75);
-
   // Finally, check if chat mode change should be fired, i.e the user was in HISTORY
   if (chatStore.getChatMode() !== ChatConstants.ChatModeStatuses.IS_CHATTING) {
     dispatcher.dispatch({
@@ -65,6 +53,20 @@ export function changeActiveChatRoom(chatRoomUUID) {
         chatMode: ChatConstants.ChatModeStatuses.IS_CHATTING,
       },
     });
+  }
+
+  // Dispatch chained events
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_ROOM_CHANGE,
+    data: { chatRoomUUID },
+  });
+  // Check if chat requires fetching
+  if (chatStore.chatRequiresFetching(chatRoomUUID)) {
+    setTimeout(() => {
+      socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
+        chatRoomUUID,
+      });
+    }, 75);
   }
 }
 
@@ -75,10 +77,10 @@ export const getUserChats = async (skip = 0, limit = 25) => {
 window.getChats = async (skip, limit) => {
   return await getUserChats(skip, limit);
 };
-export function onChatRoomDataReceived(chatRoomData) {
+export function onChatThreadDataReceived(chatThread) {
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_THREAD_DATA_RECEIVED,
-    data: chatRoomData,
+    data: { chatThread },
   });
 }
 
@@ -87,27 +89,37 @@ export function onPublicRoomsReceived(publicRooms) {
     actionType: ActionTypes.CHAT_PUBLIC_ROOMS_RECEIVED,
     data: { publicRooms },
   });
+
+  // Check if session is authenticated
+  if (sessionStore.isAuthenticated) {
+    // User is authenticated, public rooms received. It is safe to suggest the chat has finally initialized
+    dispatcher.dispatch({
+      actionType: ActionTypes.CHAT_INITIALIZED,
+    });
+  } // User has not authenticated, but are WE going to perform an authentication attempt?
+  else if (
+    sessionStore.hasAuthenticationToken &&
+    !sessionStore.authenticationAttemptFinished
+  ) {
+    // If so, wait for authentication to complete first, so we can obtain user's private chats history
+    // Do nothing
+  }
 }
 
-export function loadDefaultChatRoom() {
+export function loadDefaultChatThread() {
   setTimeout(() => {
     // Check which one is the default - and if there's any
     const def = chatStore.getDefaultChatRoom();
-    let willRequestChatRoomUUID = undefined;
+    let willChangeToChatThreadUUID = undefined;
     if (!def) {
       // No default stored. Probably users' first chat entry
       // Set default to english
-      willRequestChatRoomUUID = ChatPublicRooms.EN.shortCode;
+      willChangeToChatThreadUUID = ChatPublicRooms.EN.shortCode;
     } else {
-      willRequestChatRoomUUID = def;
+      willChangeToChatThreadUUID = def;
     }
 
-    dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_ROOM_CHANGE,
-      data: {
-        chatRoomUUID: willRequestChatRoomUUID,
-      },
-    });
+    changeActiveChatRoom(willChangeToChatThreadUUID);
   });
 }
 
@@ -128,12 +140,18 @@ export async function startPrivateChat(userUUID) {
  * @param {ChatHistoryThread[]} chatHistory
  */
 export async function onUserChatHistoryReceived(chatHistory) {
-  setTimeout(() => {
-    dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_HISTORY_RECEIVED,
-      data: { chatHistory },
-    });
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_HISTORY_RECEIVED,
+    data: { chatHistory },
   });
+  if (chatStore.publicRoomsReceived) {
+    setTimeout(() => {
+      // Should we finally set the chat to initalized?
+      dispatcher.dispatch({
+        actionType: ActionTypes.CHAT_INITIALIZED,
+      });
+    });
+  }
 }
 
 export function closeChat(chatRoomUUID) {
@@ -236,6 +254,11 @@ export const searchQuery = async (query) => {
 };
 
 export const changeChatMode = async (chatMode) => {
+  // Unauthenticated users cannot go to to HISTORY mode. Otherwise, what is it that would they see? lol
+  if (!sessionStore.isAuthenticated) {
+    alert("Where ya goin boi? Login first pls");
+    return;
+  }
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_MODE_CHANGE,
     data: { chatMode },

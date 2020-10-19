@@ -6,7 +6,7 @@ import SocketEvents from "../constants/SocketEvents";
 import Error from "../classes/Error";
 const bindSessionSocketHandler = (socket) => {
   socket.on(SocketEvents.AUTHENTICATION_FAILED, () => {
-    // Do nothing for now
+    sessionActions.onAuthenticationFailed();
   });
 
   socket.on(SocketEvents.SESSION_ID, (sessionId) => {

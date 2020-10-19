@@ -17,12 +17,14 @@ const bindChatSocketHandler = (socket) => {
   });
 
   socket.on(SocketEvents.CHAT_ROOM_DATA, (chatRoomData) => {
-    chatActions.onChatRoomDataReceived(chatRoomData);
+    chatActions.onChatThreadDataReceived(chatRoomData);
   });
 
   socket.on(SocketEvents.USER_DATA, ({ chatHistory }) => {
     if (chatHistory && Array.isArray(chatHistory)) {
-      chatActions.onUserChatHistoryReceived(chatHistory);
+      setTimeout(() => {
+        chatActions.onUserChatHistoryReceived(chatHistory);
+      });
     }
   });
 };

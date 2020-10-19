@@ -84,6 +84,7 @@ const HistoryScroll = () => {
   const [chatHistory, setChatHistory] = useState(chatStore.getChatHistory());
   const isLoading = !Array.isArray(chatHistory);
 
+
   const onChatHistoryReceived = () => {
     setChatHistory(chatStore.getChatHistory());
   };

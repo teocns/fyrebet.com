@@ -23,4 +23,9 @@ export default class ChatThread extends BaseModel {
    * @type {ChatThreadMessage[]}
    */
   messages;
+
+  /**
+   * @type {boolean}
+   */
+  isLoading;
 }

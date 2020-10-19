@@ -51,6 +51,7 @@ const ChatInfoHeader = () => {
   const classes = useStyles();
 
   const renderUserInfo = () => {
+    return <p>header</p>
     if (isLoading) {
       return (
         <React.Fragment>

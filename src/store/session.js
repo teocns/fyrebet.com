@@ -4,22 +4,44 @@ import ActionTypes from "../constants/ActionTypes";
 import { sendMessage } from "../socket";
 import Currencies from "../constants/Currencies";
 import ratesStore from "./rates";
+
+import User from "../models/User";
 const Errors = require("../constants/errors");
 const CHANGE_EVENT = "change";
 
 class SessionStore extends EventEmitter {
+  /**
+   * Determines if the user is authenticated
+   * @type {boolean}
+   */
+  isAuthenticated;
+  /**
+   * Indicates if has the authentication token, hence authentication will be performed in the future
+   * @type {boolean}
+   */
+  hasAuthenticationToken;
+  /**
+   * Authenticated user
+   * @type {User}
+   */
+  user;
+  /**
+   * Suggests if an authentication attempt has been made
+   * @type {boolean}
+   */
+  authenticationAttemptPerformed;
+  /**
+   * If an authentication attempt has finished (... AUTHENTICATE -> USER DATA | AUTHENTICATION_FAILED )
+   */
+  authenticationAttemptFinished;
+
   constructor(params) {
     super(params);
-    this.dispatchToken = undefined;
+    this.isAuthenticated = false;
 
-    this.connectionInitiatedTimestamp = undefined; // When
-    this._isAuthenticated = false;
-    this.user = {
-      authentication_token: localStorage.authentication_token,
-      email: undefined,
-      username: undefined,
-    };
-    this.authentication_token_sent_timestamp = false;
+    if (this.getAuthenticationToken()) {
+      this.hasAuthenticationToken = true;
+    }
     this.sessionId = undefined;
   }
   addChangeListener(event, callback) {
@@ -45,10 +67,14 @@ class SessionStore extends EventEmitter {
     return this.user;
   }
 
+  /**
+   * Authenticated user object
+   * @param {User} user
+   */
   setUser(user) {
+    this.isAuthenticated = !!user && user instanceof User && user.username;
     this.user = user;
     localStorage.setItem("authentication_token", user.authentication_token);
-    this._isAuthenticated = true;
   }
 
   getAuthenticationToken() {
@@ -66,12 +92,29 @@ class SessionStore extends EventEmitter {
     this.setSessionId(sessionId);
     this.isInitialized = true;
   }
-  isAuthenticated() {
-    return !!this.user.username;
-  }
 
   updateAvatar(avatar) {
     this.user.avatar = avatar;
+  }
+
+  willAuthenticate() {
+    const authenticationToken = this.getAuthenticationToken();
+    return (
+      "string" === typeof authenticationToken &&
+      authenticationToken.length === 64 &&
+      !this.authenticationAttemptPerformed
+    );
+  }
+
+  isAuthenticating() {
+    return (
+      this.authenticationAttemptPerformed && !this.authenticationAttempFinished
+    );
+  }
+
+  onAuthenticationFailed() {
+    this.authenticationAttemptPerformed = false;
+    this.authenticationAttemptFinished = true;
   }
 }
 
@@ -83,7 +126,7 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
       sessionStore.updateAvatar(event.data.avatar);
       break;
     case ActionTypes.SESSION_USER_DATA_RECEIVED:
-      sessionStore.setUser(event.data);
+      sessionStore.setUser(event.data.user);
       break;
 
     case ActionTypes.SESSION_AUTHENTICATION_TOKEN_RECEIVED:
@@ -96,7 +139,9 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
     case ActionTypes.SESSION_USER_LOGOUT:
       sessionStore.setAuthenticationToken(undefined);
       break;
-
+    case ActionTypes.AUTHENTICATION_FAILED:
+      sessionStore.onAuthenticationFailed();
+      break;
     case ActionTypes.API_SUCCESS:
       // Snackbar component will subscribe to this
       setTimeout(() => {

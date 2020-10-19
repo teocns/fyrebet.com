@@ -5,15 +5,21 @@ import ActionTypes from "../constants/ActionTypes";
 import Langs from "../constants/Langs";
 import * as ChatConstants from "../constants/Chat";
 
-import bindListeners from "../store-listeners/chat";
 import sessionStore from "./session";
 
 import ChatThreadMessage from "../models/ChatThreadMessage";
 import ChatHistoryThread from "../models/ChatHistoryThread";
 import ChatThread from "../models/ChatThread";
+
+import * as chatActions from "../actions/chat";
 const DEFAULT_EVENT = "change";
 
 class ChatStore extends EventEmitter {
+  /**
+   * Chat is ready to render to the user. Everything has loaded properly
+   * @type {boolean}
+   */
+  isInitialized;
   /**
    * Only simplified, incomplete chats are stored here, for pure fast searching only.
    * @type {ChatHistoryThread[]}
@@ -23,11 +29,17 @@ class ChatStore extends EventEmitter {
    * Complete chat rooms that are or been active (user opened it)
    * @type {Object.<string, ChatThread>}
    */
-  chatThreads;
+  chatThreads = {};
 
+  /**
+   * When public rooms are finally stored, this will set to True
+   * @type {boolean}
+   */
+  publicRoomsReceived;
   constructor(params) {
     super(params);
-    this.isMessagesLoaded = false;
+
+    this.isInitialized = false; // Sets to initialized only once public chat rooms are received
     this.activeChatRoomUUID = undefined;
     this.chatThreads = {}; // Indexed by UUID. Public chats will always be here.
     this.publicRoomsUUIDs = []; // Array of keys!
@@ -43,15 +55,6 @@ class ChatStore extends EventEmitter {
     window.chatmode = () => console.log(self.chatModeStatus);
   }
 
-  storeAvailableChatRooms({ chatRooms }) {
-    if (!chatRooms) {
-      return;
-    }
-    this.chatThreads = chatRooms;
-  }
-  getLastChosenChatRoom() {
-    return localStorage.getItem("lastChatRoomUUID");
-  }
   getActiveChatThread() {
     return this.chatThreads[this.activeChatRoomUUID];
   }
@@ -80,9 +83,6 @@ class ChatStore extends EventEmitter {
    * @returns {ChatHistoryThread[]}
    */
   getChatHistory() {
-    // return Object.keys(this.chatThreads).map(
-    //   (chatRoomUUID) => this.chatThreads[chatRoomUUID]
-    // );
     return this.chatHistory;
   }
 
@@ -99,17 +99,27 @@ class ChatStore extends EventEmitter {
 
   /**
    * Store non-complex chats intended for fast browsing, only rendered in HISTORY chat mode
-   * @param {ChatHistoryThread[]} chats
+   * @param {ChatHistoryThread[]} newData
+   * @param {boolean} isChunk
    */
-  storeChatsHistory(chatsHistory) {
-    this.chatHistory = (this.chatHistory || []).concat(chatsHistory);
+  storeChatsHistory(newData, isChunk = false) {
+    if (!Array.isArray(this.chatHistory)) {
+      this.chatHistory = newData;
+    }
+    if (isChunk) {
+      this.chatHistory = [...this.chatHistory, ...newData];
+    } else {
+      this.chatHistory = newData;
+    }
   }
 
   /**
    * Store complete chat threads, usually that need to be opened or messaged within
    * @param {ChatThread} chatThread
    */
-  storeChatThread(chatThread) {}
+  storeChatThread(chatThread) {
+    this.chatThreads[chatThread.chatRoomUUID] = chatThread;
+  }
 
   hasChat(chatRoomUUID) {
     return (
@@ -126,14 +136,10 @@ class ChatStore extends EventEmitter {
    * @param {number} chatRoomUUID
    */
   chatRequiresFetching(chatRoomUUID) {
-    // Get the chat itself
+    // See if we have the chat stored
     const chatRoom = this.chatThreads[chatRoomUUID];
-    if (!chatRoom || typeof chatRoom !== "object") {
+    if (!chatRoom || !(chatRoom instanceof ChatThread) || chatRoom.isLoading) {
       return true; // Chat room has never been fetched
-    }
-    // Does the chat have messages loaded? If not, it requires fetching
-    if (!Array.isArray(chatRoom.messages)) {
-      return true;
     }
     return false;
   }
@@ -157,10 +163,10 @@ class ChatStore extends EventEmitter {
     this.activeChatRoomUUID = chatRoomUUID;
     if (this.chatRequiresFetching(chatRoomUUID)) {
       // Set chat to loading as it's being requested
-      this.chatThreads[chatRoomUUID] = Object.assign(
-        this.chatThreads[chatRoomUUID] || {},
-        { isLoading: true, chatRoomUUID }
-      );
+      this.chatThreads[chatRoomUUID] = new ChatThread({
+        isLoading: true,
+        chatRoomUUID: chatRoomUUID,
+      });
     }
   }
 
@@ -199,7 +205,7 @@ class ChatStore extends EventEmitter {
     return this._isLoadingSearchResults;
   }
   setChatMode(chatModeStatus) {
-    if (!Object.keys(ChatConstants.ChatModeStatuses).includes(chatModeStatus)) {
+    if (!(chatModeStatus in ChatConstants.ChatModeStatuses)) {
       return;
     }
     this.chatModeStatus = chatModeStatus;
@@ -208,12 +214,17 @@ class ChatStore extends EventEmitter {
   }
 
   getChatMode() {
+    // When chat is freshly initialized, it shall return IS_CHATTING on GLOBAL
     if (!this.chatModeStatus) {
       let storedChatModeStatus = localStorage.getItem("chatModeStatus");
-      return storedChatModeStatus
-        ? storedChatModeStatus
-        : ChatConstants.ChatModeStatuses.IS_CHATTING;
+      const chatModes = ChatConstants.ChatModeStatuses;
+      const hasIn = storedChatModeStatus in chatModes;
+      this.chatModeStatus =
+        storedChatModeStatus && hasIn
+          ? storedChatModeStatus
+          : ChatConstants.ChatModeStatuses.IS_CHATTING;
     }
+
     return this.chatModeStatus;
   }
 
@@ -234,10 +245,6 @@ class ChatStore extends EventEmitter {
     return this.searchQuery;
   }
 
-  isWaitingForData() {
-    return Object.keys(this.chatThreads).length === 0;
-  }
-
   storePreparedSearchApiCall({ timer, willExecuteAt }) {
     if (this.preparedSearchApiCallTimer) {
       clearTimeout(this.preparedSearchApiCallTimer);
@@ -249,17 +256,19 @@ class ChatStore extends EventEmitter {
     // Check if it's authenticated
     return sessionStore.isAuthenticated();
   }
+  setInitialized(b) {
+    this.isInitialized = b;
+    setTimeout(() => {
+      dispatcher.dispatch({
+        actionType: ActionTypes.CHAT_INITIALIZED,
+      });
+    });
+  }
 }
 
 const chatStore = new ChatStore();
 
-bindListeners();
-
 chatStore.dispatchToken = dispatcher.register((action) => {
-  const isLoadingChatResults = action.data.isLoadingChatResults;
-  if ("boolean" === typeof isLoadingChatResults) {
-    chatStore.isLoadingSearchResults(isLoadingChatResults);
-  }
   switch (action.actionType) {
     case ActionTypes.CHAT_MESSAGE_RECEIVED:
       chatStore.storeMessageReceived(action.data.message);
@@ -272,10 +281,13 @@ chatStore.dispatchToken = dispatcher.register((action) => {
       chatStore.setActiveChatRoom(action.data.chatRoomUUID);
       break;
     case ActionTypes.CHAT_THREAD_DATA_RECEIVED:
-      chatStore.storeChatThread(action.data);
+      chatStore.storeChatThread(new ChatThread(action.data.chatThread));
       break;
     case ActionTypes.CHAT_HISTORY_RECEIVED:
       chatStore.storeChatsHistory(action.data.chatHistory);
+      if (chatStore.publicRoomsReceived) {
+        chatStore.setInitialized(true);
+      }
       break;
     case ActionTypes.CHAT_THREAD_CLOSE:
       chatStore.closeOpenChat(action.data.chatRoomUUID);
@@ -284,21 +296,37 @@ chatStore.dispatchToken = dispatcher.register((action) => {
       chatStore.setChatMode(action.data.chatMode);
       break;
     case ActionTypes.CHAT_PUBLIC_ROOMS_RECEIVED:
-      action.data.publicRooms.map(chatStore.storeChatThread);
-
+      action.data.publicRooms.map((d) => {
+        if (d.chatRoomUUID in Langs) {
+          chatStore.setActiveChatRoom(d.chatRoomUUID);
+        }
+        chatStore.storeChatThread(new ChatThread(d));
+      });
+      chatStore.publicRoomsReceived = true;
+      if (!sessionStore.willAuthenticate()) {
+        chatStore.setInitialized(true);
+      }
       break;
     case ActionTypes.CHAT_SEARCH_RESULTS_CHANGED:
       chatStore.setSearchResults(action.data.searchResults);
       break;
     case ActionTypes.CHAT_SEARCH_QUERY:
       chatStore.setSearchQuery(action.data.searchQuery);
-
       break;
     case ActionTypes.CHAT_PREPARE_SEARCH_API_CALL:
       // Clear previous timeout
       chatStore.storePreparedSearchApiCall(action.data);
       break;
     default:
+      break;
+    case ActionTypes.LANGUAGE_CHANGE:
+      chatActions.onLanguageChanged(action.data.shortCode);
+      break;
+    case ActionTypes.AUTHENTICATION_FAILED:
+      // Authentication failed :( Maybe fire chat initialized status if public rooms have been received
+      if (chatStore.publicRoomsReceived) {
+        chatStore.setInitialized(true);
+      }
       break;
   }
   chatStore.emitChange(action.actionType, action.data);

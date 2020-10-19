@@ -48,7 +48,7 @@ export default function AppHeader() {
   const [user, setUser] = useState(sessionStore.getUser());
   const [anchorEl, setAnchorEl] = React.useState(null);
 
-  const isAuthenticated = sessionStore.isAuthenticated();
+  const isAuthenticated = sessionStore.isAuthenticated;
 
   const onUserUpdated = () => {
     setUser(sessionStore.getUser());

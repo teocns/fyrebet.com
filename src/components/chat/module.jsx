@@ -29,7 +29,7 @@ import UserAvatarWithActions from "../user/user-avatar";
 import theme from "../../themes/fyrebet/fyrebet";
 
 import { Search as SearchIcon } from "@material-ui/icons";
-import ChatMessagesScroll from "./HistoryScroll";
+import ChatMessagesScroll from "./MessagesScroll";
 //import PublicEnvironmentNotifications from "./PublicInteractionRow.jsx";
 
 import ChatSearchHeader from "./SearchHeader";
@@ -101,6 +101,10 @@ export default function Chat() {
 
   const [ChatMode, setChatMode] = useState(chatStore.getChatMode());
 
+  const [IsChatInitialized, setIsChatInitialized] = useState(
+    chatStore.isInitialized
+  );
+
   const classes = useStyles();
 
   // Subscribe chat message updates, shall we?
@@ -113,11 +117,13 @@ export default function Chat() {
     setChatMode(chatStore.getChatMode());
   };
 
+  const onChatInitialized = () => {
+    setIsChatInitialized(chatStore.isInitialized);
+  };
+
   const bindEventListeners = () => {
-    if (!ActiveChatRoom) {
-      // We need to request a chat room. Load default!
-      chatActions.loadDefaultChatRoom();
-    }
+    // Load a "default" chat thread if conditions met
+
     chatStore.addChangeListener(
       ActionTypes.CHAT_THREAD_DATA_RECEIVED,
       onChatRoomDataReceived
@@ -126,6 +132,10 @@ export default function Chat() {
     chatStore.addChangeListener(
       ActionTypes.CHAT_MODE_CHANGE,
       onChatModeChanged
+    );
+    chatStore.addChangeListener(
+      ActionTypes.CHAT_INITIALIZED,
+      onChatInitialized
     );
   };
 
@@ -138,6 +148,10 @@ export default function Chat() {
       ActionTypes.CHAT_MODE_CHANGE,
       onChatModeChanged
     );
+    chatStore.removeChangeListener(
+      ActionTypes.CHAT_INITIALIZED,
+      onChatInitialized
+    );
   };
   useEffect(() => {
     bindEventListeners();
@@ -145,17 +159,20 @@ export default function Chat() {
   });
 
   const renderList = () => {
-    debugger;
+    if (!IsChatInitialized) {
+      return <div>Chat initializing</div>;
+    }
     switch (ChatMode) {
       case ChatConstants.ChatModeStatuses.IS_CHATTING:
         return <ChatMessagesScroll />;
-
       case ChatConstants.ChatModeStatuses.IS_SEARCHING:
         return <ChatSearchResultsScroll />;
-
-      default:
+      case ChatConstants.ChatModeStatuses.IS_HISTORY:
         // Default shows user history
         return <HistoryScroll />;
+      default:
+        console.log("Rendering nothing");
+        break; // Redner nothing
     }
   };
   const openSearch = () => {
@@ -214,8 +231,26 @@ export default function Chat() {
       </div>
 
       {renderList()}
-
-      <ChatThreadFooter />
+      <AnimatePresence>
+        {ChatMode === ChatConstants.ChatModeStatuses.IS_CHATTING && (
+          <motion.div
+            animate={{
+              y: 0,
+            }}
+            exit={{
+              y: 120,
+            }}
+            initial={{
+              y:
+                ChatMode === ChatConstants.ChatModeStatuses.IS_CHATTING
+                  ? 0
+                  : 120,
+            }}
+          >
+            <ChatThreadFooter />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Box>
   );
 }

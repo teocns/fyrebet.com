@@ -11,6 +11,8 @@ import { sendMessage } from "../socket";
 import Environment from "../constants/Environment";
 import Error from "../classes/Error";
 
+import User from "../models/User";
+
 export function userEmailIsRegistered(email) {
   return new Promise((resolve) => {
     Fetcher.post("/is-email-registered/", { email })
@@ -50,6 +52,12 @@ export async function userAuthenticate({ email, password }) {
   }
 }
 
+export function onAuthenticationFailed() {
+  dispatcher.dispatch({
+    actionType: ActionTypes.AUTHENTICATION_FAILED,
+  });
+}
+
 export function setAuthenticationToken(authenticationToken) {
   dispatcher.dispatch({
     actionType: ActionTypes.SESSION_AUTHENTICATION_TOKEN_RECEIVED,
@@ -64,7 +72,7 @@ export function onInitialStatusReceived(status) {
     actionType: ActionTypes.SESSION_INITIAL_STATUS_RECEIVED,
     data: status,
   });
-
+  // TODO: move in rates actions
   if ("rates" in status) {
     dispatcher.dispatch({
       actionType: ActionTypes.RATES_UPDATED,
@@ -75,24 +83,27 @@ export function onInitialStatusReceived(status) {
   }
 
   const authenticationToken = sessionStore.getAuthenticationToken();
-
-  if (typeof authenticationToken === "string" && authenticationToken.length) {
+  if (
+    typeof authenticationToken === "string" &&
+    authenticationToken.length === 64
+  ) {
     // Try to authenticate
     sendMessage(SocketEvents.AUTHENTICATE, authenticationToken);
   }
 }
 
 export function onUserDataReceived(userData) {
+  const user = new User(userData);
   // Dispatch user data received and balance changes
   dispatcher.dispatch({
     actionType: ActionTypes.SESSION_USER_DATA_RECEIVED,
-    data: userData,
+    data: { user },
   });
-  if (userData && userData.balances)
+  if (user && user.balances)
     // Fire balance changes
     dispatcher.dispatch({
       actionType: ActionTypes.USER_BALANCE_CHANGED,
-      data: userData.balances,
+      data: user.balances,
     });
 }
 
