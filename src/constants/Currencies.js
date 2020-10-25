@@ -30,4 +30,10 @@ const Currencies = {
     code: "DOGE",
   },
 };
+
 export default Currencies;
+
+/**
+ * @typedef {CurrencyCode} CurrencyCode
+ */
+export const CurrencyCode = Object.keys(Currencies);

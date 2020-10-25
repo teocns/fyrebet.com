@@ -70,3 +70,22 @@ export function changeLanguage(shortCode) {
     data: { shortCode },
   });
 }
+
+export function focusOnAppDrawer() {
+  dispatcher.dispatch({
+    actionType: ActionTypes.UI_FOCUS_ON_APP_DRAWER,
+  });
+}
+
+export function unfocusOnAppDrawer() {
+  dispatcher.dispatch({
+    actionType: ActionTypes.UI_UNFOCUS_FROM_APP_DRAWER,
+  });
+}
+
+export function changeAppDrawerView(appDrawerView) {
+  dispatcher.dispatch({
+    actionType: ActionTypes.UI_CHANGE_APP_DRAWER_VIEW,
+    data: { appDrawerView },
+  });
+}

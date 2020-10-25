@@ -5,7 +5,7 @@ import { makeStyles, useTheme } from "@material-ui/core/styles";
 import clsx from "clsx";
 
 import LoginModal from "../modals/login";
-import AppHeader from "./app-bar";
+import AppBarComponent from "./AppBar";
 import Snackbars from "./snackbar";
 import AppView from "./app-view";
 
@@ -13,8 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import uiStore from "../store/ui";
 
 import ActionTypes from "../constants/ActionTypes";
-import AppDrawer from "./app-drawer";
+import AppDrawer from "./AppDrawer";
 import UserInteractionModal from "./user/user-interaction-modal";
+import { Backdrop, Paper } from "@material-ui/core";
 const useStyles = makeStyles((theme) => ({
   appContent: {
     flex: 1,
@@ -26,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
   },
   appView: {
     flex: 1,
+    backgroundColor: "#ba111d",
   },
 }));
 export default function AppContent(props) {
@@ -33,52 +35,62 @@ export default function AppContent(props) {
   const classes = useStyles();
   const theme = useTheme();
 
-  const [isSidebarOpen, setSidebarOpen] = useState(uiStore.sidebarIsOpen());
-  const [isLoginModalOpen, setLoginModalOpen] = useState(
-    uiStore.loginModalIsOpen()
+  const [ShouldFocusOnDrawer, setShouldFocusOnDrawer] = useState(
+    uiStore.shouldFocusOnDrawer()
   );
 
-  const toggleSidebar = () => {
-    setSidebarOpen(uiStore.sidebarIsOpen());
+  const onShouldFocusOnDrawerChanged = () => {
+    setShouldFocusOnDrawer(uiStore.shouldFocusOnDrawer());
   };
-  const toggleLoginModal = () => {
-    setLoginModalOpen(uiStore.loginModalIsOpen());
-  };
-
-  const style_goFullScreen = (initialWidth) => ({
-    position: "absolute",
-    top: 0,
-    left: `${uiStore.getSidebarWidth()}px`,
-    width: `${initialWidth + uiStore.getSidebarWidth()}px`,
-  });
 
   useEffect(() => {
-    uiStore.addChangeListener(ActionTypes.UI_ON_SIDEBAR_TOGGLE, toggleSidebar);
     uiStore.addChangeListener(
-      ActionTypes.UI_ON_LOGIN_MODAL_TOGGLED,
-      toggleLoginModal
+      ActionTypes.UI_FOCUS_ON_APP_DRAWER,
+      onShouldFocusOnDrawerChanged
+    );
+
+    uiStore.addChangeListener(
+      ActionTypes.UI_UNFOCUS_FROM_APP_DRAWER,
+      onShouldFocusOnDrawerChanged
     );
 
     return () => {
       uiStore.removeChangeListener(
-        ActionTypes.UI_ON_SIDEBAR_TOGGLE,
-        toggleSidebar
+        ActionTypes.UI_FOCUS_ON_APP_DRAWER,
+        onShouldFocusOnDrawerChanged
       );
+
       uiStore.removeChangeListener(
-        ActionTypes.UI_ON_LOGIN_MODAL_TOGGLED,
-        toggleLoginModal
+        ActionTypes.UI_UNFOCUS_FROM_APP_DRAWER,
+        onShouldFocusOnDrawerChanged
       );
     };
   });
   return (
-    <div
-      // animate={style_goFullScreen}
-      className={classes.appContent}
-      // ref={appContentElement}
-    >
+    <div className={classes.appContent}>
       <AppDrawer />
-      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <AppHeader />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          position: "relative",
+        }}
+      >
+        <Backdrop
+          style={{ zIndex: theme.zIndex.appBar + 1 }}
+          open={ShouldFocusOnDrawer}
+        />
+        <AppBarComponent />
+        {/* <Paper
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "50%",
+            height: "50%",
+          }}
+        ></Paper> */}
         <AppView className={classes.appView} />
       </div>
       {/* <LoginModal open={isLoginModalOpen} /> */}

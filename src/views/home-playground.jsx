@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Paper } from "@material-ui/core";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-
+import LotteryWidget from "../components/Widgets/Lottery";
 const useStyles = makeStyles((theme) => ({
   appView: {
     overflowY: "auto",
@@ -27,7 +27,8 @@ const useStyles = makeStyles((theme) => ({
   },
 
   root: {
-    background: require("../assets/background.jpg"),
+    //background: require("../assets/background.jpg"),
+    backgroundColor: "#ba111d",
   },
 }));
 
@@ -53,10 +54,11 @@ const HomePlaygroundView = (props) => {
           className={classes.gameCardImage}
         />
       </Paper>
-
-      <Paper component={Link} to="/blackjack">
-        s
+      <Paper component={Link} to="/duel" style={{ padding: "3rem" }}>
+        Create duel
       </Paper>
+
+      <LotteryWidget />
     </div>
   );
 };

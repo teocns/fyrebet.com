@@ -34,6 +34,13 @@ input[type="number"]::-webkit-outer-spin-button {
   color: #61dafb;
 }
 
+* {
+  -ms-overflow-style: none;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

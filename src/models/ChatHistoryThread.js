@@ -9,6 +9,10 @@ export default class ChatHistoryThread extends BaseModel {
    */
   lastMessageText;
   /**
+   * @type {number}
+   */
+  lastMessageTimestamp;
+  /**
    * @type {string}
    */
   chatRoomUUID;
@@ -20,4 +24,9 @@ export default class ChatHistoryThread extends BaseModel {
    * @type {string}
    */
   chatName;
+
+  /**
+   * @type {number}
+   */
+  unreadMessages;
 }

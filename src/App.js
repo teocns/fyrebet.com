@@ -20,6 +20,7 @@ import "./utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 import sessionStore from "./store/session";
+import { CssBaseline } from "@material-ui/core";
 export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -50,6 +51,7 @@ export default function App() {
       }}
     >
       <ThemeProvider theme={theme}>
+        <CssBaseline />
         {/* <AnimatePresence>{!isInitialized && <AppPreload />}</AnimatePresence> */}
         {/* <AnimatePresence>{isInitialized && }</AnimatePresence> */}
         <AppContent />

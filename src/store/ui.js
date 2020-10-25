@@ -2,6 +2,8 @@ import { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
 
+import AppDrawerViews from "../constants/AppDrawerViews";
+
 class UIStore extends EventEmitter {
   constructor(params) {
     super(params);
@@ -61,20 +63,49 @@ class UIStore extends EventEmitter {
   loginModalIsOpen() {
     return this.modals.login.isOpen;
   }
-  setCurrentView(view) {
-    this.views.current = view;
+
+  setAppDrawerView(view) {
+    if (!(view in AppDrawerViews)) {
+      return;
+    }
+
+    this.appDrawerView = view;
+    localStorage.setItem("appDrawerView", this.appDrawerView);
   }
-  getCurrentView() {
-    return this.views.current;
+  getAppDrawerView() {
+    // When the drawer is freshly initialized, it shall return CHATTING on GLOBAL
+    if (!this.appDrawerView) {
+      let _appDrawerView = localStorage.getItem("appDrawerView");
+      const _appDrawerViewExists = !!(_appDrawerView in AppDrawerViews);
+      this.appDrawerView =
+        _appDrawerView && _appDrawerViewExists
+          ? _appDrawerView
+          : AppDrawerViews.CHATTING;
+      localStorage.setItem("appDrawerView", this.appDrawerView);
+    }
+    return this.appDrawerView;
   }
+
   toggleUserProfileModal() {
     this.modals.userProfile.isOpen = !this.modals.userProfile.isOpen;
+  }
+
+  /**
+   * If true, a backdrop will cover everything but the app drawer.
+   * @param {boolean} [bool] - Setter if specified
+   */
+  shouldFocusOnDrawer(bool) {
+    if ("boolean" === typeof bool) {
+      this._shouldFocusOnDrawer = bool;
+    }
+    return this._shouldFocusOnDrawer;
   }
 }
 
 const uiStore = new UIStore();
 
 dispatcher.register((action) => {
+  let willEmitOwnChange = true;
   switch (action.actionType) {
     case ActionTypes.UI_ON_LOGIN_MODAL_TOGGLED:
       uiStore.toggleLoginModal();
@@ -88,12 +119,21 @@ dispatcher.register((action) => {
     case ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE:
       uiStore.toggleUserProfileModal();
       break;
-
+    case ActionTypes.UI_FOCUS_ON_APP_DRAWER:
+      uiStore.shouldFocusOnDrawer(true);
+      break;
+    case ActionTypes.UI_UNFOCUS_FROM_APP_DRAWER:
+      uiStore.shouldFocusOnDrawer(false);
+      break;
+    case ActionTypes.UI_CHANGE_APP_DRAWER_VIEW:
+      uiStore.setAppDrawerView(action.data.appDrawerView);
+      break;
     default:
+      willEmitOwnChange = false;
       break;
   }
 
-  uiStore.emitChange(action.actionType, action.data);
+  willEmitOwnChange && uiStore.emitChange(action.actionType, action.data);
 });
 
 export default uiStore;

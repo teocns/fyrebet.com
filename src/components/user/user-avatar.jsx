@@ -12,21 +12,25 @@ const useStyles = makeStyles((theme) => {
       "&:hover": {
         cursor: "pointer",
       },
-      width: 32,
-      height: 32,
     },
   };
 });
 
-const UserAvatarWithActions = ({ userUUID, avatarUrl }) => {
+const UserAvatarWithActions = ({ userUUID, avatarUrl, height, width }) => {
   const classes = useStyles();
   const onUserAvatarClick = () => {
     openUserProfileModal(userUUID);
   };
+
   return (
     <Avatar
       onClick={onUserAvatarClick}
       className={classes.root}
+      style={{
+        height,
+        width,
+        marginTop: height / 7,
+      }}
       alt=""
       src={assetUrl(avatarUrl)}
     />

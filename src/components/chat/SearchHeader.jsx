@@ -70,12 +70,6 @@ const ChatSearchHeader = () => {
 
   const classes = useStyles();
 
-  // useEffect(() => {
-  //   chatStore.addChangeListener(ActionTypes.CHAT_ROOM_SEARCH_DATA,  onQueryEnumReceived);
-  //   return () => {
-  //     chatStore.removeChangeListener(ActionTypes.CHAT_ROOM_SEARCH_DATA,  onQueryEnumReceived);
-  //   }
-  // });
   return (
     <div
       style={{

@@ -16,3 +16,7 @@ export const getAll = async () => {
 export const getUserBrief = (userUUID) => {
   return Fetcher.get("/user-brief", { userUUID });
 };
+
+export const autoComplete = async (query) => {
+  return (await Fetcher.get("/userAutocomplete", { query })) || [];
+};

@@ -111,6 +111,7 @@ class FortuneWheelStore extends EventEmitter {
 const fortuneWheelStore = new FortuneWheelStore();
 
 fortuneWheelStore.dispatchToken = dispatcher.register((action) => {
+  let willEmitChange = false;
   switch (action.actionType) {
     case ActionTypes.GAME_FORTUNE_WHEEL_USER_BET:
       fortuneWheelStore.betReceived(action.data.bet);
@@ -126,10 +127,12 @@ fortuneWheelStore.dispatchToken = dispatcher.register((action) => {
       break;
     case ActionTypes.GAME_FORTUNE_WHEEL_ROUND_DRAW:
       fortuneWheelStore.setCurrentRound(action.data.round);
+      break;
     default:
       break; // do nothing
   }
-  fortuneWheelStore.emitChange(action.actionType, action.data);
+  willEmitChange &&
+    fortuneWheelStore.emitChange(action.actionType, action.data);
 });
 
 export default fortuneWheelStore;

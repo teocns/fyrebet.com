@@ -10,7 +10,7 @@ import sessionStore from "./session";
 import ChatThreadMessage from "../models/ChatThreadMessage";
 import ChatHistoryThread from "../models/ChatHistoryThread";
 import ChatThread from "../models/ChatThread";
-
+import * as ArrayHelpers from "../helpers/array";
 import * as chatActions from "../actions/chat";
 const DEFAULT_EVENT = "change";
 
@@ -19,44 +19,51 @@ class ChatStore extends EventEmitter {
    * Chat is ready to render to the user. Everything has loaded properly
    * @type {boolean}
    */
-  isInitialized;
+  _isInitialized;
   /**
    * Only simplified, incomplete chats are stored here, for pure fast searching only.
    * @type {ChatHistoryThread[]}
    */
-  chatHistory;
+  _chatHistory = [];
   /**
    * Complete chat rooms that are or been active (user opened it)
    * @type {Object.<string, ChatThread>}
    */
-  chatThreads = {};
+  _chatThreads = {};
 
   /**
    * When public rooms are finally stored, this will set to True
    * @type {boolean}
    */
-  publicRoomsReceived;
+  _publicRoomsReceived;
+
+  /**
+   * The global chat room, relative to the client's language.
+   * @type {string}
+   */
+  _languagePublicRoomUUID;
   constructor(params) {
     super(params);
 
-    this.isInitialized = false; // Sets to initialized only once public chat rooms are received
-    this.activeChatRoomUUID = undefined;
-    this.chatThreads = {}; // Indexed by UUID. Public chats will always be here.
-    this.publicRoomsUUIDs = []; // Array of keys!
-    this.languagePublicRoomUUID = undefined; // The global chat room, relative to the client's language.
-
-    this.chatModeStatus = this.getChatMode(); // Default to "is chatting"
+    this._isInitialized = false; // Sets to initialized only once public chat rooms are received
+    this._activeChatRoomUUID = undefined;
+    this._chatThreads = {}; // Indexed by UUID. Public chats will always be here.
 
     let self = this;
-    window.chatrooms = () => console.log(self.chatThreads);
-    window.chathistory = () => console.log(self.chatHistory);
-    window.activechat = () => console.log(self.activeChatRoomUUID);
-    window.publicrooms = () => console.log(self.publicRoomsUUIDs);
-    window.chatmode = () => console.log(self.chatModeStatus);
+    window.chatrooms = () => console.log(self._chatThreads);
+    window.chathistory = () => console.log(self._chatHistory);
+    window.activechat = () => console.log(self.getActiveChatThread());
+    window.chatmode = () => console.log(self._chatModeStatus);
+    window.languageroom = () => console.log(self.getLanguagePublicRoom());
+
+    chatActions.loadDefaultChatThread();
   }
 
+  /**
+   * @returns {ChatThread}
+   */
   getActiveChatThread() {
-    return this.chatThreads[this.activeChatRoomUUID];
+    return this._chatThreads[this._activeChatRoomUUID];
   }
   addChangeListener(actionType, callback) {
     this.on(actionType ?? DEFAULT_EVENT, callback);
@@ -83,18 +90,21 @@ class ChatStore extends EventEmitter {
    * @returns {ChatHistoryThread[]}
    */
   getChatHistory() {
-    return this.chatHistory;
+    return this._chatHistory;
   }
 
   /**
    * @returns {Object.<string,ChatThread>}
    */
   getChats() {
-    return this.chatThreads;
+    return this._chatThreads;
   }
 
   setLanguagePublicRoom(chatRoomUUID) {
-    this.languagePublicRoomUUID = chatRoomUUID;
+    this._languagePublicRoomUUID = chatRoomUUID;
+  }
+  getLanguagePublicRoom(chatRoomUUID) {
+    return this._languagePublicRoomUUID;
   }
 
   /**
@@ -103,13 +113,13 @@ class ChatStore extends EventEmitter {
    * @param {boolean} isChunk
    */
   storeChatsHistory(newData, isChunk = false) {
-    if (!Array.isArray(this.chatHistory)) {
-      this.chatHistory = newData;
+    if (!Array.isArray(this._chatHistory)) {
+      this._chatHistory = newData;
     }
     if (isChunk) {
-      this.chatHistory = [...this.chatHistory, ...newData];
+      this._chatHistory = [...this._chatHistory, ...newData];
     } else {
-      this.chatHistory = newData;
+      this._chatHistory = newData;
     }
   }
 
@@ -118,7 +128,7 @@ class ChatStore extends EventEmitter {
    * @param {ChatThread} chatThread
    */
   storeChatThread(chatThread) {
-    this.chatThreads[chatThread.chatRoomUUID] = chatThread;
+    this._chatThreads[chatThread.chatRoomUUID] = chatThread;
   }
 
   hasChat(chatRoomUUID) {
@@ -137,7 +147,7 @@ class ChatStore extends EventEmitter {
    */
   chatRequiresFetching(chatRoomUUID) {
     // See if we have the chat stored
-    const chatRoom = this.chatThreads[chatRoomUUID];
+    const chatRoom = this._chatThreads[chatRoomUUID];
     if (!chatRoom || !(chatRoom instanceof ChatThread) || chatRoom.isLoading) {
       return true; // Chat room has never been fetched
     }
@@ -150,114 +160,94 @@ class ChatStore extends EventEmitter {
    */
   storeMessageReceived(message) {
     // Only continue if we have the chat room downloaded
-    if (message.chatRoomUUID in this.chatThreads) {
-      this.chatThreads[message.chatRoomUUID].messages.push(message);
+    if (message.chatRoomUUID in this._chatThreads) {
+      // Make sure we don't already have the message
+      let exists = !!this._chatThreads[message.chatRoomUUID].messages.find(
+        (iter) => iter.messageUUID === message.messageUUID
+      );
+      if (exists) {
+        return;
+      }
+
+      this._chatThreads[message.chatRoomUUID].messages.push(message);
       // Keep a maximum stack of 50 messages received. Why not?4
-      if (this.chatThreads[message.chatRoomUUID].messages.length > 50) {
-        this.chatThreads[message.chatRoomUUID].messages.shift();
+      if (this._chatThreads[message.chatRoomUUID].messages.length > 50) {
+        this._chatThreads[message.chatRoomUUID].messages.shift();
+      }
+    }
+
+    // If the message is peresent in chatHistory, update the last message
+    let foundAtIndex = undefined;
+    for (let i = 0; i < this._chatHistory.length; i++) {
+      if (this._chatHistory[i].chatRoomUUID === message.chatRoomUUID) {
+        this._chatHistory[i].lastMessageText = message.messageText;
+        foundAtIndex = i;
+        break;
+      }
+    }
+    if (foundAtIndex !== undefined) {
+      if (foundAtIndex !== 0) {
+        this._chatHistory = ArrayHelpers.move(
+          this._chatHistory,
+          foundAtIndex,
+          0
+        );
+      }
+      // Also increase the unread count, if the current chat is not active
+      if (
+        this._chatModeStatus !== ChatConstants.ChatModeStatuses.IS_CHATTING ||
+        this._activeChatRoomUUID !== message.chatRoomUUID
+      ) {
+        this._chatHistory[0].unreadMessages++;
       }
     }
   }
 
-  setActiveChatRoom(chatRoomUUID) {
-    this.activeChatRoomUUID = chatRoomUUID;
+  setActiveChatThread(chatRoomUUID) {
+    this._activeChatRoomUUID = chatRoomUUID;
+    localStorage.setItem("_activeChatRoomUUID", this._activeChatRoomUUID);
     if (this.chatRequiresFetching(chatRoomUUID)) {
       // Set chat to loading as it's being requested
-      this.chatThreads[chatRoomUUID] = new ChatThread({
+      this._chatThreads[chatRoomUUID] = new ChatThread({
         isLoading: true,
         chatRoomUUID: chatRoomUUID,
       });
+    }
+    // Set unread messages to 0
+    for (let i = 0; i < this._chatHistory.length; i++) {
+      if (this._chatHistory[i].chatRoomUUID === chatRoomUUID) {
+        this._chatHistory[i].unreadMessages = 0;
+        break;
+      }
     }
   }
 
   getDefaultChatRoom() {
     return (
       this.defaultChatRoom ||
-      (this.defaultChatRoom = localStorage.getItem("defaultChatRoom"))
+      (this.defaultChatRoom = localStorage.getItem("_activeChatRoomUUID"))
     );
   }
   getPublicChatRoom() {
-    return this.chatThreads[this.activeLanguageShortCode];
+    return this._chatThreads[this.activeLanguageShortCode];
   }
 
-  isHistoryMode() {
-    return this.chatModeStatus === ChatConstants.ChatModeStatuses.IS_HISTORY;
-  }
-  isChatMode() {
-    return this.chatModeStatus === ChatConstants.ChatModeStatuses.IS_CHATTING;
-  }
-  isSearchMode() {
-    return this.chatModeStatus === ChatConstants.ChatModeStatuses.IS_SEARCHING;
-  }
-  getSearchResults() {
-    return this.searchResults || [];
-  }
-  setSearchResults(searchResults) {
-    this.searchResults = searchResults;
-  }
-
-  isLoadingSearchResults(bool) {
-    if ("boolean" === typeof bool) {
-      this._isLoadingSearchResults = bool;
-      console.log("bool", bool);
-      return bool;
-    }
-    return this._isLoadingSearchResults;
-  }
-  setChatMode(chatModeStatus) {
-    if (!(chatModeStatus in ChatConstants.ChatModeStatuses)) {
-      return;
-    }
-    this.chatModeStatus = chatModeStatus;
-    // Update to storage
-    localStorage.setItem("chatModeStatus", chatModeStatus);
-  }
-
-  getChatMode() {
-    // When chat is freshly initialized, it shall return IS_CHATTING on GLOBAL
-    if (!this.chatModeStatus) {
-      let storedChatModeStatus = localStorage.getItem("chatModeStatus");
-      const chatModes = ChatConstants.ChatModeStatuses;
-      const hasIn = storedChatModeStatus in chatModes;
-      this.chatModeStatus =
-        storedChatModeStatus && hasIn
-          ? storedChatModeStatus
-          : ChatConstants.ChatModeStatuses.IS_CHATTING;
-    }
-
-    return this.chatModeStatus;
-  }
-
-  setSearchQuery(searchQuery) {
-    this.searchQuery = searchQuery;
-    this.searchQueryTimestamp = parseInt(Date.now() / 1000);
-  }
-
-  getLastSearchQueryTimestamp() {
-    // Timestamp when the last search query was performed
-    return (
-      this.searchQueryTimestamp ||
-      (this.searchQueryTimestamp = parseInt(Date.now() / 1000))
-    );
-  }
-
-  getSearchQuery() {
-    return this.searchQuery;
-  }
-
-  storePreparedSearchApiCall({ timer, willExecuteAt }) {
-    if (this.preparedSearchApiCallTimer) {
-      clearTimeout(this.preparedSearchApiCallTimer);
-    }
-    this.preparedSearchApiCallTimer = timer;
-  }
-
+  /**
+   * Determines wether the user is enabled to chat in the current chat thread
+   * @returns {boolean}
+   */
   canSendMessage() {
     // Check if it's authenticated
     return sessionStore.isAuthenticated();
   }
-  setInitialized(b) {
-    this.isInitialized = b;
+
+  /**
+   * Component can be safely rendered afterwards
+   * Chat is initialized, public | private chats fetched, defaults initialized.
+   * @param {boolean} bool Chat
+   */
+  setInitialized(bool) {
+    this._isInitialized = bool;
     setTimeout(() => {
       dispatcher.dispatch({
         actionType: ActionTypes.CHAT_INITIALIZED,
@@ -269,6 +259,7 @@ class ChatStore extends EventEmitter {
 const chatStore = new ChatStore();
 
 chatStore.dispatchToken = dispatcher.register((action) => {
+  let willEmitChange = true;
   switch (action.actionType) {
     case ActionTypes.CHAT_MESSAGE_RECEIVED:
       chatStore.storeMessageReceived(action.data.message);
@@ -278,14 +269,14 @@ chatStore.dispatchToken = dispatcher.register((action) => {
       // Do nothing, for now
       break;
     case ActionTypes.CHAT_ROOM_CHANGE:
-      chatStore.setActiveChatRoom(action.data.chatRoomUUID);
+      chatStore.setActiveChatThread(action.data.chatRoomUUID);
       break;
     case ActionTypes.CHAT_THREAD_DATA_RECEIVED:
       chatStore.storeChatThread(new ChatThread(action.data.chatThread));
       break;
     case ActionTypes.CHAT_HISTORY_RECEIVED:
       chatStore.storeChatsHistory(action.data.chatHistory);
-      if (chatStore.publicRoomsReceived) {
+      if (chatStore._publicRoomsReceived) {
         chatStore.setInitialized(true);
       }
       break;
@@ -298,38 +289,42 @@ chatStore.dispatchToken = dispatcher.register((action) => {
     case ActionTypes.CHAT_PUBLIC_ROOMS_RECEIVED:
       action.data.publicRooms.map((d) => {
         if (d.chatRoomUUID in Langs) {
-          chatStore.setActiveChatRoom(d.chatRoomUUID);
+          chatStore.setLanguagePublicRoom(d.chatRoomUUID);
+          // Is there any active chat?
+          if (!(chatStore.getActiveChatThread() instanceof ChatThread)) {
+            // Then set this chat room as the active one
+            setTimeout(() => {
+              dispatcher.dispatch({
+                actionType: ActionTypes.CHAT_ROOM_CHANGE,
+                data: { chatRoomUUID: d.chatRoomUUID },
+              });
+            });
+          }
         }
         chatStore.storeChatThread(new ChatThread(d));
       });
-      chatStore.publicRoomsReceived = true;
+      chatStore._publicRoomsReceived = true;
       if (!sessionStore.willAuthenticate()) {
         chatStore.setInitialized(true);
       }
       break;
-    case ActionTypes.CHAT_SEARCH_RESULTS_CHANGED:
-      chatStore.setSearchResults(action.data.searchResults);
-      break;
-    case ActionTypes.CHAT_SEARCH_QUERY:
-      chatStore.setSearchQuery(action.data.searchQuery);
-      break;
-    case ActionTypes.CHAT_PREPARE_SEARCH_API_CALL:
-      // Clear previous timeout
-      chatStore.storePreparedSearchApiCall(action.data);
-      break;
-    default:
-      break;
     case ActionTypes.LANGUAGE_CHANGE:
-      chatActions.onLanguageChanged(action.data.shortCode);
+      setTimeout(() => {
+        chatActions.onLanguageChanged(action.data.shortCode);
+      });
       break;
     case ActionTypes.AUTHENTICATION_FAILED:
       // Authentication failed :( Maybe fire chat initialized status if public rooms have been received
-      if (chatStore.publicRoomsReceived) {
+      if (chatStore._publicRoomsReceived) {
         chatStore.setInitialized(true);
       }
       break;
+    default:
+      willEmitChange = false;
+      break;
   }
-  chatStore.emitChange(action.actionType, action.data);
+
+  willEmitChange && chatStore.emitChange(action.actionType, action.data);
 });
 
 export default chatStore;

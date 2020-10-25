@@ -4,7 +4,7 @@ import { Send } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
 import { motion, AnimatePresence, useAnimation } from "framer";
-import fortuneWheelStore from "../../store/fortune-wheel";
+import fortuneWheelStore from "../../store/fortuneWheel";
 import ActionTypes from "../../constants/ActionTypes";
 import SpinningWheel from "./canvas";
 

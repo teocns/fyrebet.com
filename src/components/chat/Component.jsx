@@ -3,6 +3,8 @@ import Box from "@material-ui/core/Box";
 
 import { makeStyles } from "@material-ui/core/styles";
 
+import * as notificationActions from "../../actions/notification";
+
 import {
   Avatar,
   Typography,
@@ -11,6 +13,7 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  Button,
 } from "@material-ui/core/";
 import Skeleton from "@material-ui/lab/Skeleton";
 
@@ -29,17 +32,23 @@ import UserAvatarWithActions from "../user/user-avatar";
 import theme from "../../themes/fyrebet/fyrebet";
 
 import { Search as SearchIcon } from "@material-ui/icons";
-import ChatMessagesScroll from "./MessagesScroll";
+import ChatMessagesScroll from "./Thread/MessagesScroll";
 //import PublicEnvironmentNotifications from "./PublicInteractionRow.jsx";
 
 import ChatSearchHeader from "./SearchHeader";
 import ChatSearchResultsScroll from "./SearchResultsScroll";
 
 import * as ChatConstants from "../../constants/Chat";
+import AppDrawerViews from "../../constants/AppDrawerViews";
 
-import HistoryScroll from "./HistoryScroll";
+import ThreadsHistoryScroll from "./History/ThreadsScroll";
 import ChatInfoHeader from "./ChatInfoHeader";
-import ChatThreadFooter from "./ChatThreadFooter";
+import ChatThreadFooter from "./Thread/Footer";
+import ChatSoundEffects from "./ChatSoundEffects";
+import { useHistory } from "react-router-dom";
+
+import * as uiActions from "../../actions/ui";
+
 const useStyles = makeStyles((theme) => {
   return {
     root: {
@@ -64,13 +73,7 @@ const useStyles = makeStyles((theme) => {
     messageBoxUsername: {
       color: "#ececec",
     },
-    userIcon: {
-      width: 32,
-      height: 32,
-      display: "none",
-      position: "absolute",
-      marginRight: theme.spacing(2),
-    },
+
     username: {
       color: "",
     },
@@ -110,6 +113,7 @@ export default function Chat() {
   // Subscribe chat message updates, shall we?
 
   const onChatRoomDataReceived = () => {
+    alert("YUEA");
     setActiveChatRoom(chatStore.getActiveChatThread());
   };
 
@@ -169,14 +173,15 @@ export default function Chat() {
         return <ChatSearchResultsScroll />;
       case ChatConstants.ChatModeStatuses.IS_HISTORY:
         // Default shows user history
-        return <HistoryScroll />;
+        return <ThreadsHistoryScroll />;
       default:
         console.log("Rendering nothing");
         break; // Redner nothing
     }
   };
-  const openSearch = () => {
-    chatActions.changeChatMode(ChatConstants.ChatModeStatuses.IS_SEARCHING);
+
+  const goToSearchChatUsers = () => {
+    uiActions.changeAppDrawerView(AppDrawerViews.FIND_USERS_GOTO_CHAT);
   };
   const renderHeader = () => {
     switch (ChatMode) {
@@ -197,7 +202,7 @@ export default function Chat() {
               <IconButton
                 aria-controls={`go-back`}
                 aria-haspopup="true"
-                onClick={openSearch}
+                onClick={() => {}}
               >
                 <SearchIcon size="small" />
               </IconButton>
@@ -231,26 +236,23 @@ export default function Chat() {
       </div>
 
       {renderList()}
-      <AnimatePresence>
+      <ChatThreadFooter />
+      <ChatSoundEffects />
+      {/* <AnimatePresence>
         {ChatMode === ChatConstants.ChatModeStatuses.IS_CHATTING && (
           <motion.div
             animate={{
-              y: 0,
+              opacity: 1,
+              scale:-1
             }}
             exit={{
-              y: 120,
-            }}
-            initial={{
-              y:
-                ChatMode === ChatConstants.ChatModeStatuses.IS_CHATTING
-                  ? 0
-                  : 120,
+              scale: 0,
             }}
           >
-            <ChatThreadFooter />
+            
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </Box>
   );
 }

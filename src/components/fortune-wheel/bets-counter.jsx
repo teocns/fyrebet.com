@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import fortuneWheelStore from "../../store/fortune-wheel";
+import fortuneWheelStore from "../../store/fortuneWheel";
 import ActionTypes from "../../constants/ActionTypes";
 import PersonIcon from "@material-ui/icons/Person";
 

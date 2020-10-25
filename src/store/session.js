@@ -63,6 +63,10 @@ class SessionStore extends EventEmitter {
     this.lastMessageReceived = new Date().getTime();
   }
 
+  /**
+   * Authenticated user object
+   * @returns {User}
+   */
   getUser() {
     return this.user;
   }
@@ -121,6 +125,7 @@ class SessionStore extends EventEmitter {
 const sessionStore = new SessionStore();
 
 sessionStore.dispatchToken = dispatcher.register((event) => {
+  let willEmitChange = true;
   switch (event.actionType) {
     case ActionTypes.SESSION_USER_AVATAR_CHANGED:
       sessionStore.updateAvatar(event.data.avatar);
@@ -155,9 +160,11 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
       });
       break;
     default:
+      willEmitChange = false;
       break; // do nothing
   }
-  sessionStore.emitChange(event.actionType, event.data);
+
+  willEmitChange && sessionStore.emitChange(event.actionType, event.data);
 });
 
 export default sessionStore;

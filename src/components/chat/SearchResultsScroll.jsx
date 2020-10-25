@@ -97,22 +97,36 @@ const ChatSearchResultsScroll = () => {
     chatStore.getSearchResults()
   );
 
+  const [IsLoading, setIsLoading] = useState(
+    chatStore.isLoadingSearchResults()
+  );
   const SearchQuery = chatStore.getSearchQuery();
-  const isLoadingSearchResults = chatStore.isLoadingSearchResults();
 
   // const [IsLoading, setIsLoading] = useState(chatStore.isLoadingSearchResults());
 
   // Optimize chat loading
   // When user keeps typing, don't remove results that match data he's typing in
 
+  const onChatSearchIsLoadingChanged = () => {
+    const newValue = chatStore.isLoadingSearchResults();
+    if (newValue !== IsLoading) {
+      setIsLoading(newValue);
+    }
+  };
   const onChatSearchResultsChanged = () => {
-    setSearchResults(chatStore.getSearchResults());
+    const newValue = chatStore.isLoadingSearchResults();
+    if (newValue !== IsLoading) {
+      setIsLoading(newValue);
+    }
+    setTimeout(() => {
+      setSearchResults(chatStore.getSearchResults());
+    });
   };
 
   const subscribeToChatStoreEvents = () => {
     chatStore.addChangeListener(
-      ActionTypes.CHAT_SEARCH_QUERY_CHANGE,
-      onChatSearchResultsChanged
+      ActionTypes.CHAT_SEARCH_QUERY,
+      onChatSearchIsLoadingChanged
     );
 
     chatStore.addChangeListener(
@@ -124,8 +138,8 @@ const ChatSearchResultsScroll = () => {
 
   const unsubscribeToChatStoreEvents = () => {
     chatStore.removeChangeListener(
-      ActionTypes.CHAT_SEARCH_QUERY_CHANGE,
-      onChatSearchResultsChanged
+      ActionTypes.CHAT_SEARCH_QUERY,
+      onChatSearchIsLoadingChanged
     );
     chatStore.removeChangeListener(
       ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
@@ -183,13 +197,16 @@ const ChatSearchResultsScroll = () => {
         style={{
           margin: theme.spacing(2),
         }}
+        key={Math.random()}
       >
         <img
-          style={{ width: "75%", height: "75%" }}
+          style={{ width: "60%", height: "60%" }}
           src={PhotographerTakingPictures}
           alt=""
         />
-        <Typography variant="h6">Nothing Found</Typography>
+        <Typography variant="h6">
+          {SearchQuery ? "Nothing Found" : "Search time!"}
+        </Typography>
         <Typography
           style={{
             color: theme.palette.text.hint,
@@ -197,8 +214,10 @@ const ChatSearchResultsScroll = () => {
           }}
           variant="subtitle2"
         >
-          No matches were found for "{SearchQuery}". Try checking for typos or
-          using complete words.
+          {SearchQuery
+            ? `No matches were found for "${SearchQuery}". Try checking for typos or
+          using complete words.`
+            : "Find other players to challenge them or simply enjoy a chat with them"}
         </Typography>
       </div>
     );
@@ -210,9 +229,9 @@ const ChatSearchResultsScroll = () => {
       results = SearchResults.map(renderResult);
     }
 
-    if (isLoadingSearchResults) {
+    if (IsLoading) {
       results.push(
-        <div key={Math.random()} className={classes.preloadContainer}>
+        <div key={"SearchPreload"} className={classes.preloadContainer}>
           <CircularProgress size={32} />
         </div>
       );
@@ -224,15 +243,12 @@ const ChatSearchResultsScroll = () => {
 
   const classes = useStyles();
   return (
-    <div className={classes.messagesScroll}>
-      <div
-        style={{
-          display: "block",
-        }}
-      >
-        {renderSearchResults()}
-      </div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0.9, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+    >
+      <div className={classes.messagesScroll}>{renderSearchResults()}</div>
+    </motion.div>
   );
 };
 

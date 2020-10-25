@@ -29,7 +29,7 @@ import { gotoView } from "../actions/ui";
 import CurrencySelect from "./currency-select";
 
 import ratesStore from "../store/rates";
-import LanguagePicker from "./pickers/language";
+import LanguagePicker from "./pickers/Language";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-export default function AppHeader() {
+const AppBarComponent = () => {
   const classes = useStyles();
 
   const [user, setUser] = useState(sessionStore.getUser());
@@ -69,10 +69,6 @@ export default function AppHeader() {
     };
   });
 
-  const gotoUserProfile = () => {
-    gotoView(VIEWS.USER_PROFILE);
-  };
-
   const handleUserMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -85,6 +81,7 @@ export default function AppHeader() {
     sessionActions.logout();
     handleUserMenuClose();
   };
+
   const renderUserInfo = () => {
     if (isAuthenticated)
       return (
@@ -141,7 +138,7 @@ export default function AppHeader() {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar elevation={0} position="static">
       <Toolbar>
         <IconButton
           edge="start"
@@ -170,4 +167,5 @@ export default function AppHeader() {
       </Toolbar>
     </AppBar>
   );
-}
+};
+export default React.memo(AppBarComponent);

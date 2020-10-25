@@ -4,9 +4,12 @@ import {
   Tooltip,
   Menu,
   Divider,
+  Box,
   MenuItem,
+  Avatar,
   IconButton,
   Typography,
+  Button,
 } from "@material-ui/core";
 
 import Langs from "../../constants/Langs";
@@ -14,17 +17,21 @@ import ActionTypes from "../../constants/ActionTypes";
 import languageStore from "../../store/language";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import * as uiActions from "../../actions/ui";
-
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 const useStyles = makeStyles((theme) => {
   return {
-    flag: {
-      width: "1.25rem",
-      height: "1.25rem",
+    icon: {
+      width: 22,
+      height: 22,
     },
   };
 });
 
-const LanguagePicker = () => {
+/**
+ * @param {object} obj
+ * @param {boolean} obj.showSelectedValueName - Ccomponent will not return an IconButton but a select if true
+ */
+const LanguagePicker = ({ asIcon }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [CurrentLanguage, setCurrentLanguage] = useState(
     Langs[languageStore.getLang()]
@@ -60,27 +67,46 @@ const LanguagePicker = () => {
       );
     };
   });
-  return (
-    <React.Fragment>
+
+  const renderSelectedLanguage = () => {
+    if (!asIcon) {
+      return (
+        <Button
+          disableElevation={true}
+          variant="text"
+          onClick={handleClick}
+          size="small"
+          endIcon={<KeyboardArrowDownIcon />}
+        >
+          {CurrentLanguage.language.toLowerCase()}
+        </Button>
+      );
+    }
+    return (
       <Tooltip title="Change language" aria-label={CurrentLanguage.language}>
         <IconButton
           aria-controls={`language-picker-${uuid}`}
           aria-haspopup="true"
           onClick={handleClick}
         >
-          <img
-            className={classes.flag}
+          <Avatar
+            className={classes.icon}
             src={CurrentLanguage.flagAsset}
             alt={CurrentLanguage.language}
           />
         </IconButton>
       </Tooltip>
+    );
+  };
 
+  return (
+    <React.Fragment>
+      {renderSelectedLanguage()}
       <Menu
         id={`language-picker-${uuid}`}
         anchorEl={anchorEl}
         keepMounted
-        open={Boolean(anchorEl)}
+        open={!!anchorEl}
         onClose={changeLang}
       >
         {Object.values(Langs).map(
@@ -94,7 +120,7 @@ const LanguagePicker = () => {
               >
                 <div style={{ display: "inline-flex", alignItems: "center" }}>
                   <img
-                    className={classes.flag}
+                    className={classes.icon}
                     src={flagAsset}
                     alt={language}
                   />
@@ -114,4 +140,4 @@ const LanguagePicker = () => {
   );
 };
 
-export default LanguagePicker;
+export default React.memo(LanguagePicker);

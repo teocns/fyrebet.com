@@ -16,7 +16,7 @@ import {
 } from "@material-ui/core";
 import { useEffect } from "react";
 
-import fortuneWheelStore from "../../store/fortune-wheel";
+import fortuneWheelStore from "../../store/fortuneWheel";
 
 import Rate from "../rate";
 

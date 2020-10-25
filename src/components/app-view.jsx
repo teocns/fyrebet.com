@@ -7,7 +7,9 @@ import { makeStyles, useTheme } from "@material-ui/core/styles";
 import UserProfileView from "../views/user-profile";
 import HomePlaygroundView from "../views/home-playground";
 import AdminView from "../views/admin";
-import FortuneWheelView from "../views/fortune-wheel";
+import JackpotRoulette from "../views/JackpotRoulette";
+import CreateDuelView from "../views/duels/CreateDuel";
+import { Backdrop } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   appView: {
@@ -15,6 +17,11 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "column",
     flex: 1,
+    background: "#ba111d",
+  },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: "#fff",
   },
 }));
 
@@ -26,8 +33,9 @@ const AppView = () => {
       <Route exact path="/" component={HomePlaygroundView} />
       <Route path="/profile" component={UserProfileView} />
       <Route path="/admin" component={AdminView} />
-      <Route path={`/jackpot`} component={FortuneWheelView}></Route>
+      <Route path={`/jackpot`} component={JackpotRoulette}></Route>
       <Route path={`/blackjack`} render={() => <p>Ciaooo</p>}></Route>
+      <Route path={`/duel`} component={CreateDuelView}></Route>
     </div>
   );
 };

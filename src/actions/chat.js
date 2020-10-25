@@ -10,8 +10,16 @@ import Fetcher from "../classes/fetcher";
 
 import ChatHistoryThread from "../models/ChatHistoryThread";
 import * as ChatConstants from "../constants/Chat";
+import * as notificationActions from "./notification";
+import * as uiActions from "./ui";
+
 import sessionStore from "../store/session";
-export function sendMessage(messageText) {
+import uiStore from "../store/ui";
+import ChatThreadMessage from "../models/ChatThreadMessage";
+
+import AppDrawerViews from "../constants/AppDrawerViews";
+
+export const sendMessage = (messageText) => {
   //console.log("sending message from user chat actions");
 
   const activeChatRoom = chatStore.getActiveChatThread();
@@ -27,56 +35,139 @@ export function sendMessage(messageText) {
     data: messageData,
   });
   socketSendMessage(SocketEvents.SEND_CHAT_MESSAGE, messageData);
-}
+};
 
-export function onChatMessageReceived(message) {
-  if (chatStore.chatRequiresFetching(message.chatRoomUUID)) {
-    // Does not have chat room fetched, hence the store wouldn't know where to push the message.
-    // Downloading the chat data
-    socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
-      chatRoomUUID: message.chatRoomUUID,
-    });
-  } else {
+/**
+ *
+ * @param {ChatThreadMessage} message
+ */
+export const onChatMessageReceived = (message) => {
+  if (!chatStore.chatRequiresFetching(message.chatRoomUUID)) {
+    // Deploy message received event - Chat does not require fetching
     dispatcher.dispatch({
       actionType: ActionTypes.CHAT_MESSAGE_RECEIVED,
       data: { message },
     });
-  }
-}
 
-export function changeActiveChatRoom(chatRoomUUID) {
-  // Finally, check if chat mode change should be fired, i.e the user was in HISTORY
-  if (chatStore.getChatMode() !== ChatConstants.ChatModeStatuses.IS_CHATTING) {
-    dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_MODE_CHANGE,
-      data: {
-        chatMode: ChatConstants.ChatModeStatuses.IS_CHATTING,
-      },
+    // Should we display notification?
+    if (message.userUUID !== sessionStore.getUser().UUID) {
+      notificationActions.notifyMessageReceived(message);
+    }
+  } else {
+    // Does not have chat room fetched, hence the store wouldn't know where to push the message.
+    // Cache the dispatch and fire it later when we receive the chat room data
+    let chatDataReceived = false;
+    const onFetchedChatDataReceived = ({ chatThread }) => {
+      const { chatRoomUUID } = chatThread;
+      if (chatRoomUUID !== message.chatRoomUUID) {
+        console.log("chatRoomUUID !== message.chatRoomUUID");
+        return;
+      }
+      chatDataReceived = true;
+      console.log("chatDataReceived = true;");
+      chatStore.removeChangeListener(
+        ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+        onFetchedChatDataReceived
+      );
+      setTimeout(() => {
+        // Now we can finally dispatch the cached message
+        // Notice: the store will discard this message as it's already within the post-fetched chat thread
+        onChatMessageReceived(message);
+      });
+    };
+    // To avoid keeping the listener in the memory forever, we truncate it if the chat data has not been received within X seconds
+    let startWaitingForChatData = parseInt(Date.now() / 1000);
+    console.log("startWaitingForChatData", startWaitingForChatData);
+    chatStore.addChangeListener(
+      ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+      onFetchedChatDataReceived
+    );
+    let waitForChatDataInterval = setInterval(() => {
+      if (
+        chatDataReceived ||
+        (!chatDataReceived &&
+          parseInt(Date.now() / 1000) - startWaitingForChatData > 30)
+      ) {
+        clearInterval(waitForChatDataInterval);
+        chatStore.removeListener(
+          ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+          onFetchedChatDataReceived
+        );
+      }
+    }, 1000);
+    // Downloading the chat data
+    socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
+      chatRoomUUID: message.chatRoomUUID,
     });
   }
+};
 
+export function changeActiveChatRoom(chatRoomUUID) {
+  console.log("change");
   // Dispatch chained events
-  dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_ROOM_CHANGE,
-    data: { chatRoomUUID },
-  });
-  // Check if chat requires fetching
-  if (chatStore.chatRequiresFetching(chatRoomUUID)) {
+
+  // Before checking if chat requires fetching, see if user needs or will authenticate
+  // Because if the chat is a private one, we won't be able to fetch if he's not yet logged in
+  if (
+    !sessionStore.getUser() &&
+    (sessionStore.willAuthenticate() || sessionStore.isAuthenticating())
+  ) {
+    console.log("user needs or will authenticate before fetching chat");
+    // Add a temporary event listener to change the active chat room once the user has logged in
+    let waitingConsumed = false;
+    let waitingConsumedCheckInterval = undefined;
+    let waitingConsumedClockStart = parseInt(Date.now() / 1000);
+    const onAuthenticated = () => {
+      sessionStore.removeChangeListener(
+        ActionTypes.SESSION_USER_DATA_RECEIVED,
+        onAuthenticated
+      );
+      waitingConsumed = true;
+      console.log("waiting consumed");
+
+      setTimeout(() => {
+        socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
+          chatRoomUUID,
+        });
+      });
+    };
+    sessionStore.addChangeListener(
+      ActionTypes.SESSION_USER_DATA_RECEIVED,
+      onAuthenticated
+    );
+
+    // Create an interval to timeout data reception and remove the change listener
+    waitingConsumedCheckInterval = setInterval(() => {
+      if (
+        waitingConsumed === false &&
+        parseInt(Date.now() / 1000) > waitingConsumedClockStart + 5
+      ) {
+        console.log("Waiting expired");
+        sessionStore.removeChangeListener(
+          ActionTypes.SESSION_USER_DATA_RECEIVED,
+          onAuthenticated
+        );
+        changeActiveChatRoom(chatStore.getPublicChatRoom);
+        clearInterval(waitingConsumedCheckInterval);
+      }
+    }, 250);
+  } else if (chatStore.chatRequiresFetching(chatRoomUUID)) {
     setTimeout(() => {
       socketSendMessage(SocketEvents.CHAT_ROOM_DATA_REQUEST, {
         chatRoomUUID,
       });
-    }, 75);
+    });
   }
+  dispatcher.dispatch({
+    actionType: ActionTypes.CHAT_ROOM_CHANGE,
+    data: { chatRoomUUID },
+  });
 }
 
 export const getUserChats = async (skip = 0, limit = 25) => {
   return await Fetcher.get("userChats", { s: skip, l: limit });
 };
 
-window.getChats = async (skip, limit) => {
-  return await getUserChats(skip, limit);
-};
 export function onChatThreadDataReceived(chatThread) {
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_THREAD_DATA_RECEIVED,
@@ -108,6 +199,12 @@ export function onPublicRoomsReceived(publicRooms) {
 
 export function loadDefaultChatThread() {
   setTimeout(() => {
+    // Only continue if the app drwaer is set to CHATTING mode
+
+    if (uiStore.getAppDrawerView() !== AppDrawerViews.CHATTING) {
+      return;
+    }
+
     // Check which one is the default - and if there's any
     const def = chatStore.getDefaultChatRoom();
     let willChangeToChatThreadUUID = undefined;
@@ -118,7 +215,6 @@ export function loadDefaultChatThread() {
     } else {
       willChangeToChatThreadUUID = def;
     }
-
     changeActiveChatRoom(willChangeToChatThreadUUID);
   });
 }
@@ -144,7 +240,7 @@ export async function onUserChatHistoryReceived(chatHistory) {
     actionType: ActionTypes.CHAT_HISTORY_RECEIVED,
     data: { chatHistory },
   });
-  if (chatStore.publicRoomsReceived) {
+  if (chatStore._publicRoomsReceived) {
     setTimeout(() => {
       // Should we finally set the chat to initalized?
       dispatcher.dispatch({
@@ -154,40 +250,29 @@ export async function onUserChatHistoryReceived(chatHistory) {
   }
 }
 
-export function closeChat(chatRoomUUID) {
-  // Dispatch chained events
-  [
-    () => {
-      socketSendMessage(SocketEvents.CHAT_ROOM_LEAVE, { chatRoomUUID });
-    },
-    () => {
-      dispatcher.dispatch({
-        actionType: ActionTypes.CHAT_THREAD_CLOSE,
-        data: { chatRoomUUID },
-      });
-    },
-  ].map((f) => setTimeout(f));
+export function leaveThread(chatRoomUUID) {
+  // Notify the server that we don't want to received updates on the chat
+  socketSendMessage(SocketEvents.CHAT_ROOM_LEAVE, { chatRoomUUID });
 }
 
 export async function onLanguageChanged(shortCode) {
-  // Get old public chat room
-  const publicChatRoom = chatStore.getPublicChatRoom();
-  if (publicChatRoom) {
-    // Close it
-    closeChat(publicChatRoom.chatRoomUUID);
+  const currentLanguagePubRoom = chatStore.getLanguagePublicRoom();
+  if (shortCode === currentLanguagePubRoom) {
+    return; // No action needed.
   }
+
   // What was the active chat room?
-  const activeChat = chatStore.activeChatRoomUUID;
-  if (
-    activeChat &&
-    publicChatRoom &&
-    activeChat === publicChatRoom.chatRoomUUID
-  ) {
-    // Change the active chat room
-    setTimeout(() => {
-      changeActiveChatRoom(shortCode);
-    });
+  const activeChat = chatStore.getActiveChatThread();
+  if (activeChat && activeChat.chatRoomUUID === shortCode) {
+    // We need to close the current chat
+
+    leaveThread(activeChat.chatRoomUUID);
   }
+
+  // Change the active chat room to the new one
+  setTimeout(() => {
+    changeActiveChatRoom(shortCode);
+  });
 }
 export const triggerChatVisited = (chatRoomUUID) => {
   socketSendMessage(SocketEvents.CHAT_ROOM_VISITED, { chatRoomUUID });
@@ -203,7 +288,7 @@ export const searchQuery = async (query) => {
   // Inform dispatcher we are performing chat queries
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_SEARCH_QUERY,
-    data: { searchQuery: query, isLoadingChatResults: true }, // also set isLoading to show preload
+    data: { searchQuery: query }, // also set isLoading to show preload
   });
 
   // Optimize search results keeping. Iterate through the search-query
@@ -229,7 +314,7 @@ export const searchQuery = async (query) => {
   // Dispatch the new results with removed and kept occurrences
   dispatcher.dispatch({
     actionType: ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
-    data: { searchResults: newResults, isLoadingChatResults: true }, // It is stil loading, keep preload
+    data: { searchResults: newResults }, // It is stil loading, keep preload
   });
 
   // To avoid spam, make sure only one api call gets through every 1 second
@@ -244,7 +329,7 @@ export const searchQuery = async (query) => {
         if (Array.isArray(searchResults)) {
           dispatcher.dispatch({
             actionType: ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
-            data: { searchResults, isLoadingChatResults: false },
+            data: { searchResults, query, isServerSideResult: true },
           });
         }
       }, 1000),
@@ -253,14 +338,9 @@ export const searchQuery = async (query) => {
   });
 };
 
-export const changeChatMode = async (chatMode) => {
-  // Unauthenticated users cannot go to to HISTORY mode. Otherwise, what is it that would they see? lol
-  if (!sessionStore.isAuthenticated) {
-    alert("Where ya goin boi? Login first pls");
-    return;
-  }
-  dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_MODE_CHANGE,
-    data: { chatMode },
-  });
+export const showChatThread = (chatRoomUUID) => {
+  // Set active chat room
+  changeActiveChatRoom(chatRoomUUID);
+  // Set app drawer mode to chatting
+  uiActions.changeAppDrawerView(AppDrawerViews.CHATTING);
 };

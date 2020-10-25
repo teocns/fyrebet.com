@@ -17,7 +17,7 @@ import { COLORS } from "../constants/fortune-wheel";
 import BetsAmount from "../components/fortune-wheel/bets-amount";
 import PlaceBetModule from "../components/place-bet-module";
 
-import fortuneWheelStore from "../store/fortune-wheel";
+import fortuneWheelStore from "../store/fortuneWheel";
 
 const useStyles = makeStyles((theme) => ({
   root: {

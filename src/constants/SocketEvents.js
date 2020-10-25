@@ -27,6 +27,7 @@ const SocketEvents = keyMirror({
   FORTUNE_WHEEL_USER_BET: null,
   FORTUNE_WHEEL_JOIN: null,
   FORTUNE_WHEEL_LEAVE: null,
+  JACKPOT_ROULETTE_PLACE_BET: null,
 });
 
 module.exports = SocketEvents;

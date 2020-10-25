@@ -45,13 +45,13 @@ const ChatInfoHeader = () => {
 
   const onClose = () => {
     // Goes back to history
-    chatActions.changeChatMode(ChatConstants.ChatModeStatuses.IS_HISTORY);
+    // chatActions.changeChatMode(ChatConstants.ChatModeStatuses.IS_HISTORY);
   };
 
   const classes = useStyles();
 
   const renderUserInfo = () => {
-    return <p>header</p>
+    return <p>header</p>;
     if (isLoading) {
       return (
         <React.Fragment>

@@ -37,6 +37,9 @@ const theme = createMuiTheme({
     fontSize: 14,
   },
   overrides: {
+    MuiTextField: {
+      boxShadow: "none",
+    },
     MuiCssBaseline: {
       "@global": {
         "@font-face": [GilroyBold],

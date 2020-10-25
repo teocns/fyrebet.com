@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import dispatcher from "../dispatcher";
 
-import Chat from "./chat/module";
+import Chat from "./chat/Component";
 import uiStore from "../store/ui";
 import { toggleSidebar } from "../actions/ui";
 
@@ -18,6 +18,10 @@ import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 
 import ActionTypes from "../constants/ActionTypes";
 
+import AppDrawerViews from "../constants/AppDrawerViews";
+import FindUsersComponent from "./user/Find";
+import ChatThreadComponent from "./chat/Thread/Component";
+import ChatHistoryComponent from "./chat/History/Component";
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
@@ -40,22 +44,55 @@ export default function AppDrawer() {
   const classes = useStyles();
   const theme = useTheme();
 
+  const [AppDrawerView, setAppDrawerView] = useState(
+    uiStore.getAppDrawerView()
+  );
+
   const [isOpen, setOpen] = useState(uiStore.sidebarIsOpen());
 
   const changeListener = () => {
     setOpen(uiStore.sidebarIsOpen());
   };
+
+  const onAppDrawerViewChange = () => {
+    setAppDrawerView(uiStore.getAppDrawerView());
+  };
+
   useEffect(() => {
     uiStore.addChangeListener(ActionTypes.UI_ON_SIDEBAR_TOGGLE, changeListener);
+
+    uiStore.addChangeListener(
+      ActionTypes.UI_CHANGE_APP_DRAWER_VIEW,
+      onAppDrawerViewChange
+    );
 
     return () => {
       uiStore.removeChangeListener(
         ActionTypes.UI_ON_SIDEBAR_TOGGLE,
         changeListener
       );
+      uiStore.removeChangeListener(
+        ActionTypes.UI_CHANGE_APP_DRAWER_VIEW,
+        onAppDrawerViewChange
+      );
     };
   });
 
+  const renderView = () => {
+    switch (AppDrawerView) {
+      case AppDrawerViews.CHATTING:
+        return <ChatThreadComponent />;
+      case AppDrawerViews.CHAT_HISTORY:
+        return <ChatHistoryComponent />;
+      case AppDrawerViews.FIND_USERS_START_CHAT:
+      case AppDrawerViews.FIND_USERS_SELECT_MULTI:
+      case AppDrawerViews.FIND_USERS_SELECT:
+        return <FindUsersComponent />;
+      default:
+        // Hmm?
+        break;
+    }
+  };
   return (
     <AnimatePresence initial={false}>
       {isOpen && (
@@ -90,7 +127,16 @@ export default function AppDrawer() {
               </IconButton>
             </div>
             <Divider />
-            <Chat style={{ height: "100%" }} id="coolfra" />
+            <div
+              style={{
+                flex: 1,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {renderView()}
+            </div>
           </Drawer>
         </motion.div>
       )}

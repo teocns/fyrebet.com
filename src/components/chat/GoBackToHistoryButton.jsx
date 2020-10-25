@@ -2,11 +2,12 @@ import React, { useState } from "react";
 
 import { ArrowBack } from "@material-ui/icons";
 
-import * as chatActions from "../../actions/chat";
+import * as uiActions from "../../actions/ui";
 
 import { Tooltip, IconButton } from "@material-ui/core";
 
-import * as ChatConstants from "../../constants/Chat";
+import AppDrawerViews from "../../constants/AppDrawerViews";
+
 const GoBackToHistoryButton = () => {
   // Wherever the user finds himself in, this button will lead him to
   // home of the chat module.
@@ -19,15 +20,16 @@ const GoBackToHistoryButton = () => {
     ? `${MissedMessages} in your chats.`
     : "Go back to chats screen";
 
-  const goBackToHome = () => {
-    chatActions.changeChatMode(ChatConstants.ChatModeStatuses.IS_HISTORY);
+  const goToHistory = () => {
+    uiActions.changeAppDrawerView(AppDrawerViews.CHAT_HISTORY);
   };
   return (
     <Tooltip title="Go back to your main" aria-label={"Back"}>
       <IconButton
         aria-controls={`go-back`}
+        size="small"
         aria-haspopup="true"
-        onClick={goBackToHome}
+        onClick={goToHistory}
       >
         <ArrowBack size="small" />
       </IconButton>
