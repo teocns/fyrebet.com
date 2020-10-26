@@ -6,11 +6,11 @@ import jackpotRouletteStore from "../../store/jackpotRoulette";
 
 const JackpotRoulettePotSizeDisplay = () => {
   const [CurrentPotSize, setCurrentPotSize] = useState(
-    jackpotRouletteStore.getBetsAmountUSD()
+    jackpotRouletteStore.getPotSize()
   );
 
   const onBetPlaced = () => {
-    setCurrentPotSize(jackpotRouletteStore.getBetsAmountUSD());
+    setCurrentPotSize(jackpotRouletteStore.getPotSize());
   };
   useEffect(() => {
     jackpotRouletteStore.addChangeListener(

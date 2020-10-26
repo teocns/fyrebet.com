@@ -17,6 +17,12 @@ class JackpotRouletteStore extends EventEmitter {
    * @type {JackpotRouletteRound}
    */
   _currentRound;
+
+  /**
+   *
+   * @type {number}
+   */
+  _potSize;
   constructor(params) {
     super(params);
     this._history = [];
@@ -62,11 +68,8 @@ class JackpotRouletteStore extends EventEmitter {
     }
     return this.mBets[multiplier].arr.length;
   }
-  getBetsAmountUSD(multiplier) {
-    if (undefined === multiplier || !(multiplier in this.mBets)) {
-      return this.allBets.usdTotal;
-    }
-    return this.mBets[multiplier].usdTotal;
+  getPotSize() {
+    return this._potSize || 0;
   }
   /**
    * @returns {JackpotRouletteRound}
