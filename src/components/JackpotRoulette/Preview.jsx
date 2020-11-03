@@ -51,6 +51,21 @@ const JackpotRoulettePreview = ({ threadUUID, isLoading = true }) => {
       clearInterval(interval);
     };
   });
+
+  const renderTotalPlayers = () => {};
+
+  const renderGameCard = () => {
+    return (
+      <Paper>
+        <img
+          style={{ width: 210, height: 118 }}
+          alt={"Jackpot Roulette"}
+          src={require("../../assets/jackpotbackground.jpg")}
+        />
+      </Paper>
+    );
+  };
+  const renderSkeletonCard = () => {};
   return (
     <Box
       component={Paper}

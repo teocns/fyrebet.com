@@ -12,22 +12,6 @@ import { jssPreset } from "@material-ui/core";
 
 class JackpotRouletteStore extends EventEmitter {
   /**
-   * @type {JackpotRouletteRound[]}
-   */
-  _history;
-
-  /**
-   * @type {JackpotRouletteRound}
-   */
-  _currentRound;
-
-  /**
-   *
-   * @type {number}
-   */
-  _potSize;
-
-  /**
    * @type {string[]}
    */
   #public_threads_keys;
@@ -51,7 +35,7 @@ class JackpotRouletteStore extends EventEmitter {
   /**
    * A public thread that is by default what users will first see and play on.
    */
-  #public_thread_of_choice;
+  #default_thread;
 
   /**
    * If set to true, thread brief sync will not be requested
@@ -65,7 +49,6 @@ class JackpotRouletteStore extends EventEmitter {
     this.#thread_briefs = [];
     this.#is_subscribed_to_thread_briefs_updates = false;
     this.#public_threads_keys = [];
-    this._history = [];
   }
 
   addChangeListener(event, callback) {
@@ -99,77 +82,6 @@ class JackpotRouletteStore extends EventEmitter {
   }
 
   /**
-   * @param {JackpotRouletteRound} round
-   */
-  setCurrentRound(round) {
-    this._currentRound = round;
-  }
-  /**
-   * @returns {JackpotRouletteRound}
-   */
-  getCurrentRound() {
-    return this._currentRound || {};
-  }
-  setBets(mBets) {
-    this.mBets = mBets;
-  }
-  getBets(multiplier) {
-    if (undefined === multiplier || !(multiplier in this.mBets)) {
-      return this.allBets.arr;
-    }
-    return this.mBets[multiplier].arr;
-  }
-
-  getBetsCount(multiplier) {
-    if (undefined === multiplier || !(multiplier in this.mBets)) {
-      return this.allBets.arr.length;
-    }
-    return this.mBets[multiplier].arr.length;
-  }
-  getPotSize() {
-    return this._potSize || 0;
-  }
-  /**
-   * @returns {JackpotRouletteRound}
-   */
-  getPreviousRound() {
-    if (this._history && this._history.length) {
-      return this._history[this._history.length - 1];
-    }
-    return {};
-  }
-  setHistory(history) {
-    this.history = history;
-  }
-  storeBetReceived(bet) {
-    const usdValue = getValueInUSD({
-      currency: bet.betCurrency,
-      amount: bet.betAmount,
-    });
-
-    this.allBets.arr.push(bet);
-    this.allBets.usdTotal += usdValue;
-
-    this.mBets[bet.multiplier].arr.push(bet);
-    this.mBets[bet.multiplier].usdTotal += usdValue;
-  }
-
-  isLoaded() {
-    return this._currentRound instanceof JackpotRouletteRound;
-  }
-  /**
-   * @param {JackpotRouletteRound} round
-   */
-  storeNewRound(round) {
-    if (this._currentRound instanceof JackpotRouletteRound) {
-      this._history.push(this._currentRound);
-    } else {
-      this._history.push(round);
-    }
-    this._currentRound = round;
-  }
-
-  /**
    * @param {JackpotRouletteDraw} draw
    */
   storeRoundDraw(draw) {
@@ -195,7 +107,7 @@ class JackpotRouletteStore extends EventEmitter {
    */
   storeBrief(threadBrief) {
     if (threadBrief.isPublic) {
-      this.#public_thread_of_choice = threadBrief.threadUUID;
+      this.#default_thread = threadBrief.threadUUID;
     }
     this.#thread_briefs[threadBrief.threadUUID] = threadBrief;
   }
@@ -207,10 +119,10 @@ class JackpotRouletteStore extends EventEmitter {
   }
 
   getPublicThreadOfChoice() {
-    if (!this.#public_thread_of_choice) {
+    if (!this.#default_thread) {
       return undefined;
     }
-    return this.getThreadBrief(this.#public_thread_of_choice);
+    return this.getThreadBrief(this.#default_thread);
   }
 }
 
