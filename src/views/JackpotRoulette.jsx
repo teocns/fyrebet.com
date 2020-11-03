@@ -5,24 +5,20 @@ import ActionTypes from "../constants/ActionTypes";
 import { makeStyles } from "@material-ui/core/styles";
 
 import { Grid, Button, Paper, Box, TextField } from "@material-ui/core";
-import JackpotRouletteComponent from "../components/JackpotRoulette/Component";
+import JackpotRouletteComponent from "../components/JackpotRoulette/GameArea";
 
 import BetsCounter from "../components/fortune-wheel/bets-counter";
 
 import BetsList from "../components/fortune-wheel/bets-list";
 
-import { joinRoom, leaveRoom, placeBet } from "../actions/fortune-wheel";
+import jackpotRouletteActions from "../actions/jackpotRoulette";
 
 import { COLORS } from "../constants/fortune-wheel";
 import BetsAmount from "../components/fortune-wheel/bets-amount";
 import PlaceBetModule from "../components/place-bet-module";
 
-import fortuneWheelStore from "../store/fortuneWheel";
+import jackpotRouletteStore from "../store/jackpotRoulette";
 
-import tests from "../tests/jackpotRoulete";
-import jackpotRoulete from "../tests/jackpotRoulete";
-
-import * as jackpotRouletteActions from "../actions/jackpotRoulette";
 import JackpotRoulettePotSizeDisplay from "../components/JackpotRoulette/PotSizeDisplay";
 
 const useStyles = makeStyles((theme) => ({
@@ -72,29 +68,32 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const JackpotRouletteView = () => {
+  const [ActiveThread, setActiveThread] = useState(
+    jackpotRouletteStore.getActiveThread()
+  );
   const [BetsOpen, setBetsOpen] = useState(false);
   const classes = useStyles();
-  tests();
+
   useEffect(() => {
     // Join Fortune Wheel Socket Room
 
-    fortuneWheelStore.addChangeListener(
-      ActionTypes.GAME_FORTUNE_WHEEL_ROUND_BEGIN,
+    jackpotRouletteStore.addChangeListener(
+      ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_NEW,
       onRoundBegin
     );
-    fortuneWheelStore.addChangeListener(
-      ActionTypes.GAME_FORTUNE_WHEEL_ROUND_DRAW,
+    jackpotRouletteStore.addChangeListener(
+      ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_DRAW,
       onRoundClose
     );
-    joinRoom();
+    jackpotRouletteActions.joinThread();
     return () => {
-      leaveRoom();
-      fortuneWheelStore.removeChangeListener(
-        ActionTypes.GAME_FORTUNE_WHEEL_ROUND_BEGIN,
+      jackpotRouletteActions.leaveThread();
+      jackpotRouletteStore.removeChangeListener(
+        ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_NEW,
         onRoundBegin
       );
-      fortuneWheelStore.removeChangeListener(
-        ActionTypes.GAME_FORTUNE_WHEEL_ROUND_DRAW,
+      jackpotRouletteStore.removeChangeListener(
+        ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_DRAW,
         onRoundClose
       );
     };
@@ -111,17 +110,6 @@ const JackpotRouletteView = () => {
     setBetsOpen(false);
   };
 
-  const betOn = (multiplier) => {
-    if (!(betAmountInputEl && betAmountInputEl.current)) {
-      return;
-    }
-
-    const betAmount = parseFloat(
-      betAmountInputEl.current.querySelector("input").value
-    );
-    const betCurrency = "btc";
-    placeBet({ betAmount, multiplier, betCurrency });
-  };
   return (
     <Grid container className={classes.root} direction="row">
       <Grid item xs={12} md={12}>
@@ -175,37 +163,6 @@ const JackpotRouletteView = () => {
               draw
             </Button>
           </Grid>
-
-          {/* {[2, 3, 5, 50].map((multiplier) => {
-            return (
-              <Grid item xs={3} className={classes.betsColumnSection}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  className={clsx({
-                    [classes[`bet${multiplier}Button`]]: true,
-                    [classes.betButton]: true,
-                  })}
-                  onClick={() => {
-                    betOn(multiplier);
-                  }}
-                >
-                  X2
-                </Button>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                  }}
-                >
-                  <BetsCounter multiplier={multiplier} />
-                  <BetsAmount multiplier={multiplier} />
-                </div>
-                <BetsList multiplier={multiplier} showColumnNames={false} />
-              </Grid>
-            );
-          })} */}
         </Grid>
       </Grid>
     </Grid>

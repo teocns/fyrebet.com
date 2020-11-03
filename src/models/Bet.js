@@ -10,7 +10,7 @@ import UserSocialBrief from "./UserSocialBrief";
  * @property {UserSocialBrief} user
  */
 
-export default class Bet extends BaseModel {
+export default class Bet {
   /**
    * @type {string}
    */
@@ -32,6 +32,12 @@ export default class Bet extends BaseModel {
    * @param {BetObject} obj
    */
   constructor(obj) {
-    super(obj);
+    if (typeof obj === "object") {
+      for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this[key] = obj[key];
+        }
+      }
+    }
   }
 }

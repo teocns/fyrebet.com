@@ -1,7 +1,7 @@
 import BaseModel from "../BaseModel";
 import UserSocialBrief from "../UserSocialBrief";
 
-export default class DuelLobbyInvitation extends BaseModel {
+export default class DuelLobbyInvitation {
   /**
    * @type {UserSocialBrief}
    *

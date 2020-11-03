@@ -1,6 +1,6 @@
 import BaseModel from "../BaseModel";
 
-export default class LotteryBrief extends BaseModel {
+export default class LotteryBrief {
   /**
    * @type {string}
    */
@@ -21,4 +21,14 @@ export default class LotteryBrief extends BaseModel {
    * @type {number}
    */
   totalPlayers;
+
+  constructor(obj) {
+    if (typeof obj === "object") {
+      for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this[key] = obj[key];
+        }
+      }
+    }
+  }
 }

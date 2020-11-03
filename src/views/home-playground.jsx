@@ -2,9 +2,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Paper } from "@material-ui/core";
+import { Skeleton } from "@material-ui/lab";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import LotteryWidget from "../components/Widgets/Lottery";
+import JackpotRouletteView from "./JackpotRoulette";
+import jackpotRouletteStore from "../store/jackpotRoulette";
+import jackpotRouletteActions from "../actions/jackpotRoulette";
+import JackpotRoulettePreview from "../components/JackpotRoulette/Preview";
+import chatStore from "../store/chat";
+
 const useStyles = makeStyles((theme) => ({
   appView: {
     overflowY: "auto",
@@ -32,8 +39,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const HomePlaygroundView = (props) => {
+/**
+ * We require to have:
+ * - Public thread of jackpot roulette
+ * @param {any} props
+ */
+const GamesPreviewView = (props) => {
   const classes = useStyles();
+
+  // const briefsLoaded = Object.values(briefs).every(
+  //   (item) => item !== undefined
+  // );
+
+  // We gotta make sure that thread briefs are up to date.
 
   return (
     <div className={classes.root}>
@@ -54,13 +72,13 @@ const HomePlaygroundView = (props) => {
           className={classes.gameCardImage}
         />
       </Paper>
+
+      <JackpotRoulettePreview />
       <Paper component={Link} to="/duel" style={{ padding: "3rem" }}>
         Create duel
       </Paper>
-
-      <LotteryWidget />
     </div>
   );
 };
 
-export default HomePlaygroundView;
+export default GamesPreviewView;

@@ -1,7 +1,7 @@
 import BaseModel from "../BaseModel";
 import UserSocialBrief from "../UserSocialBrief";
 
-export default class DuelLobby extends BaseModel {
+export default class DuelLobby {
   /**
    * @type {string}
    */
@@ -28,4 +28,14 @@ export default class DuelLobby extends BaseModel {
    * @type {number}
    */
   timestamp;
+
+  constructor(obj) {
+    if (typeof obj === "object") {
+      for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this[key] = obj[key];
+        }
+      }
+    }
+  }
 }

@@ -1,4 +1,4 @@
-export default class UserAvatar extends BaseModel {
+export default class UserAvatar {
   /**
    * @type {string}
    */
@@ -8,4 +8,14 @@ export default class UserAvatar extends BaseModel {
    * @type {Object.<number,string>}
    */
   sizes;
+
+  constructor(obj) {
+    if (typeof obj === "object") {
+      for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this[key] = obj[key];
+        }
+      }
+    }
+  }
 }

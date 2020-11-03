@@ -40,11 +40,11 @@ const theme = createMuiTheme({
     MuiTextField: {
       boxShadow: "none",
     },
-    MuiCssBaseline: {
-      "@global": {
-        "@font-face": [GilroyBold],
-      },
-    },
+    // MuiCssBaseline: {
+    //   "@global": {
+    //     "@font-face": [GilroyBold],
+    //   },
+    // },
   },
 });
 

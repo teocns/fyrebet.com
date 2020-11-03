@@ -1,6 +1,6 @@
 import BaseModel from "./BaseModel";
 
-export default class UserSocialBrief extends BaseModel {
+export default class UserSocialBrief {
   /**
    * @type {string}
    */
@@ -22,4 +22,14 @@ export default class UserSocialBrief extends BaseModel {
    * @type {number}
    */
   unreadMessagesCount;
+
+  constructor(obj) {
+    if (typeof obj === "object") {
+      for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this[key] = obj[key];
+        }
+      }
+    }
+  }
 }

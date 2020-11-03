@@ -3,7 +3,7 @@ import BaseModel from "./BaseModel";
 /**
  * When user loads history of his chats, each single available chat would be represented by this model
  */
-export default class ChatHistoryThread extends BaseModel {
+export default class ChatHistoryThread {
   /**
    * @type {string}
    */
@@ -29,4 +29,13 @@ export default class ChatHistoryThread extends BaseModel {
    * @type {number}
    */
   unreadMessages;
+  constructor(obj) {
+    if (typeof obj === "object") {
+      for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this[key] = obj[key];
+        }
+      }
+    }
+  }
 }

@@ -6,6 +6,9 @@ import { sendMessage } from "../socket";
 import { getValueInUSD } from "../helpers/rates";
 import JackpotRouletteRound from "../models/Jackpot/Round";
 import JackpotRouletteDraw from "../models/Jackpot/Draw";
+import JackpotRouletteThread from "../models/Jackpot/Thread";
+import JackpotRouletteThreadBrief from "../models/Jackpot/ThreadBrief";
+import { jssPreset } from "@material-ui/core";
 
 class JackpotRouletteStore extends EventEmitter {
   /**
@@ -23,8 +26,45 @@ class JackpotRouletteStore extends EventEmitter {
    * @type {number}
    */
   _potSize;
+
+  /**
+   * @type {string[]}
+   */
+  #public_threads_keys;
+
+  /**
+   * UUID reference to the active thread
+   * @type {string}
+   */
+  #activeThreadUUID;
+
+  /**
+   * @type {Object.<string,JackpotRouletteThread>}
+   */
+  #threads;
+
+  /**
+   * @type {Object.<string,JackpotRouletteThreadBrief>}
+   */
+  #thread_briefs;
+
+  /**
+   * A public thread that is by default what users will first see and play on.
+   */
+  #public_thread_of_choice;
+
+  /**
+   * If set to true, thread brief sync will not be requested
+   * @type {boolean}
+   */
+  #is_subscribed_to_thread_briefs_updates;
+
   constructor(params) {
     super(params);
+    this.#threads = [];
+    this.#thread_briefs = [];
+    this.#is_subscribed_to_thread_briefs_updates = false;
+    this.#public_threads_keys = [];
     this._history = [];
   }
 
@@ -38,6 +78,24 @@ class JackpotRouletteStore extends EventEmitter {
 
   emitChange(event, data) {
     this.emit(event, data);
+  }
+
+  /**
+   *
+   * @param {string} threadUUID
+   * @returns {JackpotRouletteThread}
+   */
+  getThread(threadUUID) {
+    return this.#threads[threadUUID];
+  }
+
+  /**
+   *
+   * @param {string} threadUUID
+   * @returns {JackpotRouletteThreadBrief}
+   */
+  getThreadBrief(threadUUID) {
+    return this.#thread_briefs[threadUUID];
   }
 
   /**
@@ -117,6 +175,43 @@ class JackpotRouletteStore extends EventEmitter {
   storeRoundDraw(draw) {
     this._currentRound.assignDraw(draw);
   }
+
+  /**
+   * Only invoke once the thread sync was received by server-side
+   * @param {string} threadUUID
+   */
+  setActiveThread(threadUUID) {
+    this.#activeThreadUUID = threadUUID;
+  }
+
+  getPublicThreads() {
+    return this.#public_threads_keys.map((threadUUID) =>
+      this.getThread(threadUUID)
+    );
+  }
+
+  /**
+   * @param {JackpotRouletteThreadBrief} threadBrief
+   */
+  storeBrief(threadBrief) {
+    if (threadBrief.isPublic) {
+      this.#public_thread_of_choice = threadBrief.threadUUID;
+    }
+    this.#thread_briefs[threadBrief.threadUUID] = threadBrief;
+  }
+  /**
+   *
+   */
+  requiresThreadBriefsSync() {
+    this.#is_subscribed_to_thread_briefs_updates = true;
+  }
+
+  getPublicThreadOfChoice() {
+    if (!this.#public_thread_of_choice) {
+      return undefined;
+    }
+    return this.getThreadBrief(this.#public_thread_of_choice);
+  }
 }
 
 const jackpotRouletteStore = new JackpotRouletteStore();
@@ -133,6 +228,15 @@ jackpotRouletteStore.dispatchToken = dispatcher.register((action) => {
       console.log("jackpotRouletteStore.storeRoundDraw(action.data.roundDraw)");
       console.log(action.data.jackpotRouletteDraw);
       jackpotRouletteStore.storeRoundDraw(action.data.jackpotRouletteDraw);
+      break;
+    case ActionTypes.GAME_JACKPOT_ROULETTE_THREAD_CHANGE:
+      jackpotRouletteStore.setActiveThread(action.data.threadUUID);
+      break;
+    case ActionTypes.GAME_JACKPOT_ROULETTE_THREADS_BRIEF_RECEIVED:
+      // Store briefs
+      action.data.threadBriefs.map((threadBrief) =>
+        jackpotRouletteStore.storeBrief(threadBrief)
+      );
       break;
     default:
       willEmitChange = false;

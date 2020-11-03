@@ -1,7 +1,7 @@
 export default class BaseModel {
   constructor(obj) {
     if (typeof obj === "object") {
-      for (let key of Object.keys(obj)) {
+      for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
           this[key] = obj[key];
         }
