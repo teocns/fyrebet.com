@@ -29,7 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import UserAvatarWithActions from "../user/user-avatar";
 
-import theme from "../../themes/fyrebet/fyrebet";
+import theme from "../../themes/fyrebet";
 
 import { Search as SearchIcon } from "@material-ui/icons";
 import ChatMessagesScroll from "./Thread/MessagesScroll";

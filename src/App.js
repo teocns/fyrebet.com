@@ -11,7 +11,7 @@ import { ThemeProvider } from "@material-ui/styles";
 
 // Custom components
 
-import theme from "./themes/fyrebet/fyrebet";
+import theme from "./themes/fyrebet";
 
 import Box from "@material-ui/core/Box";
 

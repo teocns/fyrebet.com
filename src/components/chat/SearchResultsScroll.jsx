@@ -6,7 +6,7 @@ import ActionTypes from "../../constants/ActionTypes";
 import { motion } from "framer-motion";
 import UserAvatarWithActions from "../user/user-avatar";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../../themes/fyrebet/fyrebet";
+import theme from "../../themes/fyrebet";
 
 import SentimentDissatisfiedIcon from "@material-ui/icons/SentimentDissatisfied";
 import {
