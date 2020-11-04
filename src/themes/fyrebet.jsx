@@ -20,6 +20,7 @@ const theme = createMuiTheme({
 
   typography: {
     fontSize: 14,
+    fontFamily: ["Uni Sans", "Roboto"].join(", "),
   },
   overrides: {
     MuiTextField: {
