@@ -4,13 +4,16 @@ import FlipNumbers from "react-flip-numbers";
 import ActionTypes from "../../constants/ActionTypes";
 import jackpotRouletteStore from "../../store/jackpotRoulette";
 
-const JackpotRoulettePotSizeDisplay = () => {
+const JackpotRoulettePotSizeDisplay = ({ threadUUID }) => {
+  if (!threadUUID) {
+    throw "JackpotRoulettePotSizeDisplay - threadUUID cannot be null;";
+  }
   const [CurrentPotSize, setCurrentPotSize] = useState(
-    jackpotRouletteStore.getPotSize()
+    jackpotRouletteStore.getPotSize(threadUUID)
   );
 
   const onBetPlaced = () => {
-    setCurrentPotSize(jackpotRouletteStore.getPotSize());
+    setCurrentPotSize(jackpotRouletteStore.getPotSize(threadUUID));
   };
   useEffect(() => {
     jackpotRouletteStore.addChangeListener(

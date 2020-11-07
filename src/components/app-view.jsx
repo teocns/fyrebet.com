@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "column",
     flex: 1,
-    background: "#ba111d",
+    background: "rgb(34, 7, 52)",
   },
   backdrop: {
     zIndex: theme.zIndex.drawer + 1,

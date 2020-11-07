@@ -27,7 +27,6 @@ const useStyles = makeStyles((theme) => ({
   },
   appView: {
     flex: 1,
-    backgroundColor: "#ba111d",
   },
 }));
 export default function AppContent(props) {

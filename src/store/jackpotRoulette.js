@@ -71,7 +71,28 @@ class JackpotRouletteStore extends EventEmitter {
   getThread(threadUUID) {
     return this.#threads[threadUUID];
   }
+  getCurrentRound() {
+    if (!this.#activeThreadUUID) {
+      return null;
+    }
+    const thread = this.getThread(this.#activeThreadUUID);
 
+    if (thread && thread.currentRound) {
+      return thread.currentRound;
+    }
+    return null;
+  }
+  getPreviousRound() {
+    if (!this.#activeThreadUUID) {
+      return null;
+    }
+    const thread = this.getThread(this.#activeThreadUUID);
+
+    if (thread && thread.currentRound) {
+      return thread.currentRound;
+    }
+    return null;
+  }
   /**
    *
    * @param {string} threadUUID
@@ -103,6 +124,19 @@ class JackpotRouletteStore extends EventEmitter {
   }
 
   /**
+   * @returns {number}
+   * @param {string} threadUUID
+   */
+  getPotSize(threadUUID) {
+    // Check if thread exists
+    const thread = this.getThread(threadUUID);
+    if (thread && thread.currentRound) {
+      return thread.currentRound.potSize;
+    }
+    return null;
+  }
+
+  /**
    * @param {JackpotRouletteThreadBrief} threadBrief
    */
   storeBrief(threadBrief) {
@@ -123,6 +157,17 @@ class JackpotRouletteStore extends EventEmitter {
       return undefined;
     }
     return this.getThreadBrief(this.#default_thread);
+  }
+
+  /**
+   * Returns null if player is not playing the game.
+   * @returns {JackpotRouletteThread}
+   */
+  getActiveThread() {
+    if (!this.#activeThreadUUID) {
+      return null;
+    }
+    return this.getThread(this.#activeThreadUUID);
   }
 }
 

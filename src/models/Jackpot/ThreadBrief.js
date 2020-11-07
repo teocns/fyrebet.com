@@ -11,6 +11,7 @@ import JackpotRouletteRound from "./Round";
  * @property {number} maxBetUSD
  * @property {number} playersCount
  * @property {number} drawTimestamp
+ * @property {number} drawCountdownStartedTimestamp
  * @property {number} currentPotSize
  */
 
@@ -58,9 +59,15 @@ export default class JackpotRouletteThread {
   playersCount;
 
   /**
+   * UNIX - Once the draw countdown started, the deadline will be here.
    * @type {number}
    */
   drawTimestamp;
+
+  /**
+   * @type {number} Suggests when the draw countdown started. Usually when two unilateral bets are placed.
+   */
+  drawCountdownStartedTimestamp;
 
   /**
    * @param {JackpotRouletteThreadObject} obj

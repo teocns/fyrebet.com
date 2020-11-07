@@ -35,7 +35,6 @@ const useStyles = makeStyles((theme) => ({
 
   root: {
     //background: require("../assets/background.jpg"),
-    backgroundColor: "#ba111d",
   },
 }));
 
