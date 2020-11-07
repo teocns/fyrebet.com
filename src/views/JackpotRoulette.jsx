@@ -4,7 +4,14 @@ import clsx from "clsx";
 import ActionTypes from "../constants/ActionTypes";
 import { makeStyles } from "@material-ui/core/styles";
 
-import { Grid, Button, Paper, Box, TextField } from "@material-ui/core";
+import {
+  Grid,
+  Button,
+  Paper,
+  Box,
+  TextField,
+  Typography,
+} from "@material-ui/core";
 import JackpotRouletteComponent from "../components/JackpotRoulette/GameArea";
 
 import BetsCounter from "../components/fortune-wheel/bets-counter";
@@ -67,12 +74,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const JackpotRouletteView = () => {
+const JackpotRouletteView = ({ threadUUID }) => {
   const [ActiveThread, setActiveThread] = useState(
     jackpotRouletteStore.getActiveThread()
   );
   const [BetsOpen, setBetsOpen] = useState(false);
+
   const classes = useStyles();
+  const betsModule = useRef(undefined);
+
+  const onRoundBegin = () => {
+    setBetsOpen(true);
+  };
+
+  const onRoundClose = () => {
+    setBetsOpen(false);
+  };
 
   useEffect(() => {
     // Join Fortune Wheel Socket Room
@@ -99,16 +116,17 @@ const JackpotRouletteView = () => {
     };
   });
 
-  const betAmountInputEl = useRef(undefined);
-  const betsModule = useRef(undefined);
-
-  const onRoundBegin = () => {
-    setBetsOpen(true);
-  };
-
-  const onRoundClose = () => {
-    setBetsOpen(false);
-  };
+  if (!threadUUID) {
+    // Get public thread of choice
+    const thread = jackpotRouletteStore.getPublicThreadOfChoice();
+    if (!threadUUID) {
+      return <Typography>Game unavailable.</Typography>;
+    }
+    threadUUID = thread.threadUUID;
+  }
+  if (!ActiveThread) {
+    throw "JackpotRouletteView - Active thread is null;";
+  }
 
   return (
     <Grid container className={classes.root} direction="row">
@@ -132,7 +150,11 @@ const JackpotRouletteView = () => {
           ref={betsModule}
         >
           <Grid item xs={12}>
-            {<JackpotRoulettePotSizeDisplay />}
+            {
+              <JackpotRoulettePotSizeDisplay
+                threadUUID={ActiveThread.threadUUID}
+              />
+            }
             <Button
               variant="contained"
               onClick={() => {
