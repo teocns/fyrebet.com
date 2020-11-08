@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+pimport { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
 import ActionTypes from "../constants/ActionTypes";
 

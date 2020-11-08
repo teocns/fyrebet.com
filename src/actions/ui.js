@@ -4,7 +4,7 @@ import Langs from "../constants/Langs";
 
 export function toggleSidebar(willOpen) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_ON_SIDEBAR_TOGGLE,
+    actionType: ActionTypes.UI.ON_SIDEBAR_TOGGLE,
     data: willOpen,
   });
 }
@@ -12,20 +12,20 @@ export function toggleSidebar(willOpen) {
 export function toggleLoginModal() {
   console.log("toggling login modal");
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_ON_LOGIN_MODAL_TOGGLED,
+    actionType: ActionTypes.UI.ON_LOGIN_MODAL_TOGGLED,
   });
 }
 
 export function setSidebarView(VIEW) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_SIDEBAR_CONTENT_CHANGING,
+    actionType: ActionTypes.UI.SIDEBAR_CONTENT_CHANGING,
     data: VIEW,
   });
 }
 
 export function onSidebarViewChanged(VIEW) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_SIDEBAR_CONTENT_CHANGED,
+    actionType: ActionTypes.UI.SIDEBAR_CONTENT_CHANGED,
   });
 }
 
@@ -38,7 +38,7 @@ export function showSnackbar(message, severity) {
     : message;
 
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_SHOW_SNACKBAR,
+    actionType: ActionTypes.UI.SHOW_SNACKBAR,
     data: {
       message: message,
       severity: severity,
@@ -48,14 +48,14 @@ export function showSnackbar(message, severity) {
 
 export function gotoView(VIEW) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_GOTO_VIEW,
+    actionType: ActionTypes.UI.GOTO_VIEW,
     data: VIEW,
   });
 }
 
 export function openUserProfileModal(userUUID) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE,
+    actionType: ActionTypes.UI.USER_PROFILE_MODAL_TOGGLE,
     data: { userUUID },
   });
 }
@@ -73,19 +73,19 @@ export function changeLanguage(shortCode) {
 
 export function focusOnAppDrawer() {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_FOCUS_ON_APP_DRAWER,
+    actionType: ActionTypes.UI.FOCUS_ON_APP_DRAWER,
   });
 }
 
 export function unfocusOnAppDrawer() {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_UNFOCUS_FROM_APP_DRAWER,
+    actionType: ActionTypes.UI.UNFOCUS_FROM_APP_DRAWER,
   });
 }
 
 export function changeAppDrawerView(appDrawerView) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_CHANGE_APP_DRAWER_VIEW,
+    actionType: ActionTypes.UI.CHANGE_APP_DRAWER_VIEW,
     data: { appDrawerView },
   });
 }

@@ -41,12 +41,12 @@ const Rate = ({
   const classes = useStyles();
   useEffect(() => {
     ratesStore.addChangeListener(
-      ActionTypes.RATES_SHOULD_DISPLAY_USD,
+      ActionTypes.Rates.SHOULD_DISPLAY_USD,
       onShouldRatesBeUSDChanged
     );
     return () => {
       ratesStore.removeChangeListener(
-        ActionTypes.RATES_SHOULD_DISPLAY_USD,
+        ActionTypes.Rates.SHOULD_DISPLAY_USD,
         onShouldRatesBeUSDChanged
       );
     };
@@ -55,7 +55,7 @@ const Rate = ({
   const printRate = () => {
     if (shouldRatesBeUSD || shortCode === "USD") {
       const rates = ratesStore.getRates();
-      if (!(shortCode   in rates)) {
+      if (!(shortCode in rates)) {
         return amount;
       }
       const convertedValue =

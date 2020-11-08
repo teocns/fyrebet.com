@@ -151,7 +151,7 @@ sessionStore.dispatchToken = dispatcher.register((event) => {
       // Snackbar component will subscribe to this
       setTimeout(() => {
         dispatcher.dispatch({
-          actionType: ActionTypes.UI_SHOW_SNACKBAR,
+          actionType: ActionTypes.UI.SHOW_SNACKBAR,
           data: {
             message: Errors[event.data] || event.data,
             severity: "success",

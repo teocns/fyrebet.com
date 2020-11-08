@@ -64,11 +64,11 @@ const ratesStore = new RatesStore();
 
 ratesStore.dispatchToken = dispatcher.register((action) => {
   switch (action.actionType) {
-    case ActionTypes.RATES_UPDATED:
+    case ActionTypes.Rates.UPDATED:
       console.log("Rates updated");
       ratesStore.setRates(action.data.rates);
       break;
-    case ActionTypes.RATES_SHOULD_DISPLAY_USD:
+    case ActionTypes.Rates.SHOULD_DISPLAY_USD:
       ratesStore.toggleShouldRatesBeUSD();
       break;
     default:

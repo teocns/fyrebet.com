@@ -75,6 +75,7 @@ class UserStore extends EventEmitter {
 const userStore = new UserStore();
 
 userStore.dispatchToken = dispatcher.register((event) => {
+  let willEmitChange = true;
   switch (event.actionType) {
     case ActionTypes.User.BALANCE_ACTIVE_CURRENCY_CHANGED:
       userStore.setActiveCurrency(event.data.shortCode);
@@ -83,9 +84,10 @@ userStore.dispatchToken = dispatcher.register((event) => {
       userStore.setBalance(event.data.balances);
       break;
     default:
-      break; // Do nothing
+      willEmitChange = false; // We did not catch any Pertinent action type.
+      break; // Do nothing else.
   }
-  userStore.emitChange(event.actionType, event.data);
+  willEmitChange && userStore.emitChange(event.actionType, event.data);
 });
 
 export default userStore;

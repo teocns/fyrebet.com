@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
-import ActionTypes from "../constants/ActionTypes/Chat";
+import ActionTypes from "../constants/ActionTypes";
 
 import Langs from "../constants/Langs";
 import * as ChatConstants from "../constants/Chat";
@@ -250,7 +250,7 @@ class ChatStore extends EventEmitter {
     this._isInitialized = bool;
     setTimeout(() => {
       dispatcher.dispatch({
-        actionType: ActionTypes.INITIALIZED,
+        actionType: ActionTypes.Chat.INITIALIZED,
       });
     });
   }
@@ -261,32 +261,32 @@ const chatStore = new ChatStore();
 chatStore.dispatchToken = dispatcher.register((action) => {
   let willEmitChange = true;
   switch (action.actionType) {
-    case ActionTypes.MESSAGE_RECEIVED:
+    case ActionTypes.Chat.MESSAGE_RECEIVED:
       chatStore.storeMessageReceived(action.data.message);
       // Check for longeviness
       break;
-    case ActionTypes.MESSAGE_SENT:
+    case ActionTypes.Chat.MESSAGE_SENT:
       // Do nothing, for now
       break;
-    case ActionTypes.ROOM_CHANGE:
+    case ActionTypes.Chat.ROOM_CHANGE:
       chatStore.setActiveChatThread(action.data.chatRoomUUID);
       break;
-    case ActionTypes.THREAD_DATA_RECEIVED:
+    case ActionTypes.Chat.THREAD_DATA_RECEIVED:
       chatStore.storeChatThread(new ChatThread(action.data.chatThread));
       break;
-    case ActionTypes.HISTORY_RECEIVED:
+    case ActionTypes.Chat.HISTORY_RECEIVED:
       chatStore.storeChatsHistory(action.data.chatHistory);
       if (chatStore._publicRoomsReceived) {
         chatStore.setInitialized(true);
       }
       break;
-    case ActionTypes.THREAD_CLOSE:
+    case ActionTypes.Chat.THREAD_CLOSE:
       chatStore.closeOpenChat(action.data.chatRoomUUID);
       break;
-    case ActionTypes.MODE_CHANGE:
+    case ActionTypes.Chat.MODE_CHANGE:
       chatStore.setChatMode(action.data.chatMode);
       break;
-    case ActionTypes.PUBLIC_ROOMS_RECEIVED:
+    case ActionTypes.Chat.PUBLIC_ROOMS_RECEIVED:
       action.data.publicRooms.map((d) => {
         if (d.chatRoomUUID in Langs) {
           chatStore.setLanguagePublicRoom(d.chatRoomUUID);
@@ -295,7 +295,7 @@ chatStore.dispatchToken = dispatcher.register((action) => {
             // Then set this chat room as the active one
             setTimeout(() => {
               dispatcher.dispatch({
-                actionType: ActionTypes.ROOM_CHANGE,
+                actionType: ActionTypes.Chat.ROOM_CHANGE,
                 data: { chatRoomUUID: d.chatRoomUUID },
               });
             });
@@ -308,12 +308,12 @@ chatStore.dispatchToken = dispatcher.register((action) => {
         chatStore.setInitialized(true);
       }
       break;
-    case ActionTypes.LANGUAGE_CHANGE:
+    case ActionTypes.Chat.LANGUAGE_CHANGE:
       setTimeout(() => {
         chatActions.onLanguageChanged(action.data.shortCode);
       });
       break;
-    case ActionTypes.AUTHENTICATION_FAILED:
+    case ActionTypes.Chat.AUTHENTICATION_FAILED:
       // Authentication failed :( Maybe fire chat initialized status if public rooms have been received
       if (chatStore._publicRoomsReceived) {
         chatStore.setInitialized(true);

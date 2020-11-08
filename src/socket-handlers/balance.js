@@ -14,4 +14,3 @@ const bindBalanceHandler = (socket) => {
 };
 
 export default bindBalanceHandler;
-z

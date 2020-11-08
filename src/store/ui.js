@@ -107,25 +107,25 @@ const uiStore = new UIStore();
 dispatcher.register((action) => {
   let willEmitOwnChange = true;
   switch (action.actionType) {
-    case ActionTypes.UI_ON_LOGIN_MODAL_TOGGLED:
+    case ActionTypes.UI.ON_LOGIN_MODAL_TOGGLED:
       uiStore.toggleLoginModal();
       break;
-    case ActionTypes.UI_ON_SIDEBAR_TOGGLE:
+    case ActionTypes.UI.ON_SIDEBAR_TOGGLE:
       uiStore.toggleSidebar();
       break;
-    case ActionTypes.UI_GOTO_VIEW:
+    case ActionTypes.UI.GOTO_VIEW:
       uiStore.setCurrentView(action.data);
       break;
-    case ActionTypes.UI_USER_PROFILE_MODAL_TOGGLE:
+    case ActionTypes.UI.USER_PROFILE_MODAL_TOGGLE:
       uiStore.toggleUserProfileModal();
       break;
-    case ActionTypes.UI_FOCUS_ON_APP_DRAWER:
+    case ActionTypes.UI.FOCUS_ON_APP_DRAWER:
       uiStore.shouldFocusOnDrawer(true);
       break;
-    case ActionTypes.UI_UNFOCUS_FROM_APP_DRAWER:
+    case ActionTypes.UI.UNFOCUS_FROM_APP_DRAWER:
       uiStore.shouldFocusOnDrawer(false);
       break;
-    case ActionTypes.UI_CHANGE_APP_DRAWER_VIEW:
+    case ActionTypes.UI.CHANGE_APP_DRAWER_VIEW:
       uiStore.setAppDrawerView(action.data.appDrawerView);
       break;
     default:

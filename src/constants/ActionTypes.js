@@ -4,6 +4,7 @@ import SessionActionTypes from "./ActionTypes/Session";
 import ChatActionTypes from "./ActionTypes/Chat";
 import UserActionTypes from "./ActionTypes/User";
 import RatesActionTypes from "./ActionTypes/Rates";
+import UiActionTypes from "./ActionTypes/UI";
 
 const ActionTypes = {
   JackpotRoulette: JackpotRouletteActionTypes,
@@ -11,6 +12,7 @@ const ActionTypes = {
   Chat: ChatActionTypes,
   User: UserActionTypes,
   Rates: RatesActionTypes,
+  UI: UiActionTypes,
 };
 
 const _ActionTypes = keyMirror({
@@ -43,20 +45,20 @@ const _ActionTypes = keyMirror({
   USER_DATA_SEARCH_QUERY: null,
   USER_DATA_QUERY_API_CALL: null,
   USER_DATA_RESULTS_CHANGED: null,
-  UI_ON_LOGIN_MODAL_TOGGLED: null,
-  UI_ON_LOGIN_MODAL_OPENED: null,
-  UI_ON_LOGIN_MODAL_CLOSED: null,
-  UI_ON_SIDEBAR_TOGGLE: null,
-  UI_USER_PROFILE_MODAL_TOGGLE: null,
-  UI_SIDEBAR_CONTENT_CHANGING: null,
-  UI_SIDEBAR_CONTENT_CHANGED: null,
-  UI_SHOW_SNACKBAR: null,
-  UI_GOTO_VIEW: null,
-  UI_TOGGLE_PRINT_RATES_USD: null,
-  UI_ERROR: null,
-  UI_UNFOCUS_FROM_APP_DRAWER: null,
-  UI_FOCUS_ON_APP_DRAWER: null,
-  UI_CHANGE_APP_DRAWER_VIEW: null,
+  // UI_ON_LOGIN_MODAL_TOGGLED: null,
+  // UI_ON_LOGIN_MODAL_OPENED: null,
+  // UI_ON_LOGIN_MODAL_CLOSED: null,
+  // UI_ON_SIDEBAR_TOGGLE: null,
+  // UI_USER_PROFILE_MODAL_TOGGLE: null,
+  // UI_SIDEBAR_CONTENT_CHANGING: null,
+  // UI_SIDEBAR_CONTENT_CHANGED: null,
+  // UI_SHOW_SNACKBAR: null,
+  // UI_GOTO_VIEW: null,
+  // UI_TOGGLE_PRINT_RATES_USD: null,
+  // UI_ERROR: null,
+  // UI_UNFOCUS_FROM_APP_DRAWER: null,
+  // UI_FOCUS_ON_APP_DRAWER: null,
+  // UI_CHANGE_APP_DRAWER_VIEW: null,
   LANGUAGE_CHANGE: null,
   SESSION_USER_DATA_RECEIVED: null,
   SESSION_USER_AVATAR_CHANGED: null,
