@@ -31,7 +31,7 @@ export const sendMessage = (messageText) => {
     chatRoomUUID: activeChatRoom.chatRoomUUID,
   };
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_MESSAGE_SENT,
+    actionType: ActionTypes.MESSAGE_SENT,
     data: messageData,
   });
   socketSendMessage(SocketEvents.SEND_CHAT_MESSAGE, messageData);
@@ -45,7 +45,7 @@ export const onChatMessageReceived = (message) => {
   if (!chatStore.chatRequiresFetching(message.chatRoomUUID)) {
     // Deploy message received event - Chat does not require fetching
     dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_MESSAGE_RECEIVED,
+      actionType: ActionTypes.MESSAGE_RECEIVED,
       data: { message },
     });
 
@@ -66,7 +66,7 @@ export const onChatMessageReceived = (message) => {
       chatDataReceived = true;
       console.log("chatDataReceived = true;");
       chatStore.removeChangeListener(
-        ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+        ActionTypes.THREAD_DATA_RECEIVED,
         onFetchedChatDataReceived
       );
       setTimeout(() => {
@@ -79,7 +79,7 @@ export const onChatMessageReceived = (message) => {
     let startWaitingForChatData = parseInt(Date.now() / 1000);
     console.log("startWaitingForChatData", startWaitingForChatData);
     chatStore.addChangeListener(
-      ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+      ActionTypes.THREAD_DATA_RECEIVED,
       onFetchedChatDataReceived
     );
     let waitForChatDataInterval = setInterval(() => {
@@ -90,7 +90,7 @@ export const onChatMessageReceived = (message) => {
       ) {
         clearInterval(waitForChatDataInterval);
         chatStore.removeListener(
-          ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+          ActionTypes.THREAD_DATA_RECEIVED,
           onFetchedChatDataReceived
         );
       }
@@ -119,7 +119,7 @@ export function changeActiveChatRoom(chatRoomUUID) {
     let waitingConsumedClockStart = parseInt(Date.now() / 1000);
     const onAuthenticated = () => {
       sessionStore.removeChangeListener(
-        ActionTypes.SESSION_USER_DATA_RECEIVED,
+        ActionTypes.Session.SESSION_USER_DATA_RECEIVED,
         onAuthenticated
       );
       waitingConsumed = true;
@@ -132,7 +132,7 @@ export function changeActiveChatRoom(chatRoomUUID) {
       });
     };
     sessionStore.addChangeListener(
-      ActionTypes.SESSION_USER_DATA_RECEIVED,
+      ActionTypes.Session.SESSION_USER_DATA_RECEIVED,
       onAuthenticated
     );
 
@@ -159,7 +159,7 @@ export function changeActiveChatRoom(chatRoomUUID) {
     });
   }
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_ROOM_CHANGE,
+    actionType: ActionTypes.ROOM_CHANGE,
     data: { chatRoomUUID },
   });
 }
@@ -170,14 +170,14 @@ export const getUserChats = async (skip = 0, limit = 25) => {
 
 export function onChatThreadDataReceived(chatThread) {
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_THREAD_DATA_RECEIVED,
+    actionType: ActionTypes.THREAD_DATA_RECEIVED,
     data: { chatThread },
   });
 }
 
 export function onPublicRoomsReceived(publicRooms) {
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_PUBLIC_ROOMS_RECEIVED,
+    actionType: ActionTypes.PUBLIC_ROOMS_RECEIVED,
     data: { publicRooms },
   });
 
@@ -185,7 +185,7 @@ export function onPublicRoomsReceived(publicRooms) {
   if (sessionStore.isAuthenticated) {
     // User is authenticated, public rooms received. It is safe to suggest the chat has finally initialized
     dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_INITIALIZED,
+      actionType: ActionTypes.INITIALIZED,
     });
   } // User has not authenticated, but are WE going to perform an authentication attempt?
   else if (
@@ -226,7 +226,7 @@ export async function startPrivateChat(userUUID) {
   });
   if (typeof chatRoomUUID === "string" && chatRoomUUID.length === 36) {
     dispatcher.dispatch({
-      actionType: ActionTypes.CHAT_ROOM_CHANGE,
+      actionType: ActionTypes.ROOM_CHANGE,
       data: { chatRoomUUID },
     });
   }
@@ -237,14 +237,14 @@ export async function startPrivateChat(userUUID) {
  */
 export async function onUserChatHistoryReceived(chatHistory) {
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_HISTORY_RECEIVED,
+    actionType: ActionTypes.HISTORY_RECEIVED,
     data: { chatHistory },
   });
   if (chatStore._publicRoomsReceived) {
     setTimeout(() => {
       // Should we finally set the chat to initalized?
       dispatcher.dispatch({
-        actionType: ActionTypes.CHAT_INITIALIZED,
+        actionType: ActionTypes.INITIALIZED,
       });
     });
   }
@@ -287,7 +287,7 @@ export const searchQuery = async (query) => {
 
   // Inform dispatcher we are performing chat queries
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_SEARCH_QUERY,
+    actionType: ActionTypes.SEARCH_QUERY,
     data: { searchQuery: query }, // also set isLoading to show preload
   });
 
@@ -313,7 +313,7 @@ export const searchQuery = async (query) => {
   const newResults = lastResults.filter(searchPredicate);
   // Dispatch the new results with removed and kept occurrences
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
+    actionType: ActionTypes.SEARCH_RESULTS_CHANGED,
     data: { searchResults: newResults }, // It is stil loading, keep preload
   });
 
@@ -321,14 +321,14 @@ export const searchQuery = async (query) => {
   // If CHAT_PREPARE_SEARCH_API_CALL dispatches again, it will clear any previous timers
   // hence nulling any "queued" api calls and rolling in a new one awaiting to fire
   dispatcher.dispatch({
-    actionType: ActionTypes.CHAT_PREPARE_SEARCH_API_CALL,
+    actionType: ActionTypes.PREPARE_SEARCH_API_CALL,
     data: {
       timer: setTimeout(async () => {
         // Fetch search query results
         const searchResults = await Fetcher.get("/chatSearchQuery", { query });
         if (Array.isArray(searchResults)) {
           dispatcher.dispatch({
-            actionType: ActionTypes.CHAT_SEARCH_RESULTS_CHANGED,
+            actionType: ActionTypes.SEARCH_RESULTS_CHANGED,
             data: { searchResults, query, isServerSideResult: true },
           });
         }

@@ -176,20 +176,20 @@ const jackpotRouletteStore = new JackpotRouletteStore();
 jackpotRouletteStore.dispatchToken = dispatcher.register((action) => {
   let willEmitChange = true;
   switch (action.actionType) {
-    case ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_NEW:
+    case ActionTypes.ROUND_NEW:
       console.log("jackpotRouletteStore.storeNewRound(action.data.round)");
       //console.log(action.data.jackpotRouletteDraw);
       jackpotRouletteStore.storeNewRound(action.data.jackpotRouletteRound);
       break;
-    case ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_DRAW:
+    case ActionTypes.ROUND_DRAW:
       console.log("jackpotRouletteStore.storeRoundDraw(action.data.roundDraw)");
       console.log(action.data.jackpotRouletteDraw);
       jackpotRouletteStore.storeRoundDraw(action.data.jackpotRouletteDraw);
       break;
-    case ActionTypes.GAME_JACKPOT_ROULETTE_THREAD_CHANGE:
+    case ActionTypes.THREAD_CHANGE:
       jackpotRouletteStore.setActiveThread(action.data.threadUUID);
       break;
-    case ActionTypes.GAME_JACKPOT_ROULETTE_THREADS_BRIEF_RECEIVED:
+    case ActionTypes.THREADS_BRIEF_RECEIVED:
       // Store briefs
       action.data.threadBriefs.map((threadBrief) =>
         jackpotRouletteStore.storeBrief(threadBrief)

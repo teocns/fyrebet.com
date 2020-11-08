@@ -1,6 +1,6 @@
 import JackpotRouletteRound from "../models/Jackpot/Round";
 import dispatcher from "../dispatcher";
-import ActionTypes from "../constants/ActionTypes";
+import ActionTypes from "../constants/ActionTypes/JackpotRoulette";
 import JackpotRouletteDraw from "../models/Jackpot/Draw";
 import JackpotRouletteBet from "../models/Jackpot/Bet";
 import { sendMessage as socketSendMessage } from "../socket";
@@ -22,7 +22,7 @@ import jackpotRouletteStore from "../store/jackpotRoulette";
  */
 const onNewRoundBegin = (jackpotRouletteRound) => {
   dispatcher.dispatch({
-    actionType: ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_NEW,
+    actionType: ActionTypes.ROUND_NEW,
     data: {
       jackpotRouletteRound: new JackpotRouletteRound(jackpotRouletteRound),
     },
@@ -34,7 +34,7 @@ const onNewRoundBegin = (jackpotRouletteRound) => {
  */
 const onRoundDraw = (jackpotRouletteDraw) => {
   dispatcher.dispatch({
-    actionType: ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_DRAW,
+    actionType: ActionTypes.ROUND_DRAW,
     data: {
       jackpotRouletteDraw: new JackpotRouletteDraw(jackpotRouletteDraw),
     },
@@ -58,7 +58,7 @@ const joinThread = (threadUUID) => {
     if (threadSyncData.threadUUID === threadUUID) {
       // We received the thread sync we were waiting for;
       jackpotRouletteStore.removeChangeListener(
-        ActionTypes.GAME_JACKPOT_ROULETTE_THREAD_SYNC_RECEIVED,
+        ActionTypes.THREAD_SYNC_RECEIVED,
         currentThreadSyncReceived
       );
       // Dispatch event to switch active thread to this.abs
@@ -67,7 +67,7 @@ const joinThread = (threadUUID) => {
 
   // Create temp listener on the store to wait for the thread sync
   jackpotRouletteStore.addChangeListener(
-    ActionTypes.GAME_JACKPOT_ROULETTE_THREAD_SYNC_RECEIVED,
+    ActionTypes.THREAD_SYNC_RECEIVED,
     currentThreadSyncReceived
   );
 
@@ -88,7 +88,7 @@ const requestThreadsBriefs = () => {
  */
 const threadsBriefReceived = (threads) => {
   dispatcher.dispatch({
-    actionType: ActionTypes.GAME_JACKPOT_ROULETTE_THREADS_SYNC_RECEIVED,
+    actionType: ActionTypes.THREADS_SYNC_RECEIVED,
     data: { threads },
   });
 };

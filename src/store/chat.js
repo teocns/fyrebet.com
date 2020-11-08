@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import dispatcher from "../dispatcher";
-import ActionTypes from "../constants/ActionTypes";
+import ActionTypes from "../constants/ActionTypes/Chat";
 
 import Langs from "../constants/Langs";
 import * as ChatConstants from "../constants/Chat";
@@ -250,7 +250,7 @@ class ChatStore extends EventEmitter {
     this._isInitialized = bool;
     setTimeout(() => {
       dispatcher.dispatch({
-        actionType: ActionTypes.CHAT_INITIALIZED,
+        actionType: ActionTypes.INITIALIZED,
       });
     });
   }
@@ -261,32 +261,32 @@ const chatStore = new ChatStore();
 chatStore.dispatchToken = dispatcher.register((action) => {
   let willEmitChange = true;
   switch (action.actionType) {
-    case ActionTypes.CHAT_MESSAGE_RECEIVED:
+    case ActionTypes.MESSAGE_RECEIVED:
       chatStore.storeMessageReceived(action.data.message);
       // Check for longeviness
       break;
-    case ActionTypes.CHAT_MESSAGE_SENT:
+    case ActionTypes.MESSAGE_SENT:
       // Do nothing, for now
       break;
-    case ActionTypes.CHAT_ROOM_CHANGE:
+    case ActionTypes.ROOM_CHANGE:
       chatStore.setActiveChatThread(action.data.chatRoomUUID);
       break;
-    case ActionTypes.CHAT_THREAD_DATA_RECEIVED:
+    case ActionTypes.THREAD_DATA_RECEIVED:
       chatStore.storeChatThread(new ChatThread(action.data.chatThread));
       break;
-    case ActionTypes.CHAT_HISTORY_RECEIVED:
+    case ActionTypes.HISTORY_RECEIVED:
       chatStore.storeChatsHistory(action.data.chatHistory);
       if (chatStore._publicRoomsReceived) {
         chatStore.setInitialized(true);
       }
       break;
-    case ActionTypes.CHAT_THREAD_CLOSE:
+    case ActionTypes.THREAD_CLOSE:
       chatStore.closeOpenChat(action.data.chatRoomUUID);
       break;
-    case ActionTypes.CHAT_MODE_CHANGE:
+    case ActionTypes.MODE_CHANGE:
       chatStore.setChatMode(action.data.chatMode);
       break;
-    case ActionTypes.CHAT_PUBLIC_ROOMS_RECEIVED:
+    case ActionTypes.PUBLIC_ROOMS_RECEIVED:
       action.data.publicRooms.map((d) => {
         if (d.chatRoomUUID in Langs) {
           chatStore.setLanguagePublicRoom(d.chatRoomUUID);
@@ -295,7 +295,7 @@ chatStore.dispatchToken = dispatcher.register((action) => {
             // Then set this chat room as the active one
             setTimeout(() => {
               dispatcher.dispatch({
-                actionType: ActionTypes.CHAT_ROOM_CHANGE,
+                actionType: ActionTypes.ROOM_CHANGE,
                 data: { chatRoomUUID: d.chatRoomUUID },
               });
             });

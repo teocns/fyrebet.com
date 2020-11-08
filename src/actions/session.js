@@ -10,8 +10,9 @@ import languageStore from "../store/language";
 import { sendMessage } from "../socket";
 import Environment from "../constants/Environment";
 import Error from "../classes/Error";
-
+import SessionClientData from "../models/SessionClientData";
 import User from "../models/User";
+import ClientData from "../models/SessionClientData";
 
 export function userEmailIsRegistered(email) {
   return new Promise((resolve) => {
@@ -29,7 +30,7 @@ export function userEmailIsRegistered(email) {
 
 export function logout() {
   dispatcher.dispatch({
-    actionType: ActionTypes.SESSION_USER_LOGOUT,
+    actionType: ActionTypes.Session.USER_LOGOUT,
   });
   window.location.reload();
 }
@@ -60,7 +61,7 @@ export function onAuthenticationFailed() {
 
 export function setAuthenticationToken(authenticationToken) {
   dispatcher.dispatch({
-    actionType: ActionTypes.SESSION_AUTHENTICATION_TOKEN_RECEIVED,
+    actionType: ActionTypes.Session.AUTHENTICATION_TOKEN_RECEIVED,
     data: authenticationToken,
   });
   sendMessage(SocketEvents.AUTHENTICATE, authenticationToken); // Send authentication token to socket
@@ -69,7 +70,7 @@ export function setAuthenticationToken(authenticationToken) {
 export function onInitialStatusReceived(status) {
   console.log(status);
   dispatcher.dispatch({
-    actionType: ActionTypes.SESSION_INITIAL_STATUS_RECEIVED,
+    actionType: ActionTypes.Session.INITIAL_STATUS_RECEIVED,
     data: status,
   });
   // TODO: move in rates actions
@@ -81,28 +82,19 @@ export function onInitialStatusReceived(status) {
       },
     });
   }
-
-  const authenticationToken = sessionStore.getAuthenticationToken();
-  if (
-    typeof authenticationToken === "string" &&
-    authenticationToken.length === 64
-  ) {
-    // Try to authenticate
-    sendMessage(SocketEvents.AUTHENTICATE, authenticationToken);
-  }
 }
 
 export function onUserDataReceived(userData) {
   const user = new User(userData);
   // Dispatch user data received and balance changes
   dispatcher.dispatch({
-    actionType: ActionTypes.SESSION_USER_DATA_RECEIVED,
+    actionType: ActionTypes.Session.USER_DATA_RECEIVED,
     data: { user },
   });
   if (user && user.balances)
     // Fire balance changes
     dispatcher.dispatch({
-      actionType: ActionTypes.USER_BALANCE_CHANGED,
+      actionType: ActionTypes.User.BALANCE_CHANGED,
       data: user.balances,
     });
 }
@@ -116,7 +108,7 @@ export function onApiError(Error) {
 
 export function onApiSuccess(successMessage) {
   dispatcher.dispatch({
-    actionType: ActionTypes.API_ERROR,
+    actionType: ActionTypes.Session.API_ERROR,
     data: successMessage,
   });
 }
@@ -130,24 +122,34 @@ export function updateAvatar(base64) {
 export function onAvatarChanged(avatar) {
   console.log("I got my avatar changed bro", avatar);
   dispatcher.dispatch({
-    actionType: ActionTypes.SESSION_USER_AVATAR_CHANGED,
+    actionType: ActionTypes.User.AVATAR_CHANGED,
     data: { avatar },
   });
 }
 export function sendClientData() {
-  const data = {};
+  const clientData = new ClientData();
   // Gather browser info
   if (window.navigator) {
-    data.userAgent = window.navigator.userAgent;
-    data.languages = window.navigator.languages;
-    data.language = window.navigator.language;
+    clientData.userAgent = window.navigator.userAgent;
+    clientData.languages = window.navigator.languages;
+    clientData.language = window.navigator.language;
+  }
+  const authenticationToken = sessionStore.getAuthenticationToken();
+
+  if (
+    typeof authenticationToken === "string" &&
+    authenticationToken.length === 64
+  ) {
+    // Try to authenticate
+    clientData.authenticationToken = authenticationToken;
   }
   //data.appLanguage = languageStore.getLang();
-  sendMessage(SocketEvents.CLIENT_DATA, data);
+  sendMessage(SocketEvents.CLIENT_DATA, clientData);
 }
+
 export const onSessionIdReceived = (sessionId) => {
   dispatcher.dispatch({
-    actionType: ActionTypes.SESSION_ID_RECEIVED,
+    actionType: ActionTypes.Session.ID_RECEIVED,
     data: { sessionId },
   });
 };

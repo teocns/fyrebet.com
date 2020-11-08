@@ -1,6 +1,6 @@
 import dispatcher from "../dispatcher";
 
-import * as balanceActions from "../actions/balance";
+import * as balanceActions from "../actions/user";
 
 import SocketEvents from "../constants/SocketEvents";
 
@@ -14,3 +14,4 @@ const bindBalanceHandler = (socket) => {
 };
 
 export default bindBalanceHandler;
+z

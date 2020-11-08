@@ -1,11 +1,24 @@
 import keyMirror from "keymirror";
+import JackpotRouletteActionTypes from "./ActionTypes/JackpotRoulette";
+import SessionActionTypes from "./ActionTypes/Session";
+import ChatActionTypes from "./ActionTypes/Chat";
+import UserActionTypes from "./ActionTypes/User";
+import RatesActionTypes from "./ActionTypes/Rates";
 
-const ActionTypes = keyMirror({
+const ActionTypes = {
+  JackpotRoulette: JackpotRouletteActionTypes,
+  Session: SessionActionTypes,
+  Chat: ChatActionTypes,
+  User: UserActionTypes,
+  Rates: RatesActionTypes,
+};
+
+const _ActionTypes = keyMirror({
   // SOCKET
   API_ERROR: null,
   API_SUCCESS: null,
-  RATES_UPDATED: null,
-  RATES_SHOULD_DISPLAY_USD: null,
+  // RATES_UPDATED: null,
+  // RATES_SHOULD_DISPLAY_USD: null,
   SOCKET_CONNECTED: null,
   SESSION_ID_RECEIVED: null,
   SOCKET_AUTHENTICATION_TOKEN_SENT: null,
@@ -53,9 +66,9 @@ const ActionTypes = keyMirror({
   SESSION_AUTHENTICATION_TOKEN_RECEIVED: null,
   SESSION_INITIAL_STATUS_RECEIVED: null,
   AUTHENTICATION_FAILED: null,
-  BALANCE_ACTIVE_CURRENCY_CHANGED: null,
-  BALANCE_UPDATED: null,
-  USER_BALANCE_CHANGED: null,
+  // BALANCE_ACTIVE_CURRENCY_CHANGED: null,
+  // BALANCE_UPDATED: null,
+  // USER_BALANCE_CHANGED: null,
   GAME_FORTUNE_WHEEL_USER_BET_X2: null,
   GAME_FORTUNE_WHEEL_USER_BET_X3: null,
   GAME_FORTUNE_WHEEL_USER_BET_X5: null,

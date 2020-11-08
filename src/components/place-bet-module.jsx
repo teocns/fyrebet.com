@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Box, Grid, Paper, TextField } from "@material-ui/core";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 
-import balanceStore from "../store/balance";
+import userStore from "../store/user";
 import ActionTypes from "../constants/ActionTypes";
 import Currencies from "../constants/Currencies";
 import { SettingsApplications } from "@material-ui/icons";
@@ -33,27 +33,24 @@ const doubleAmount = () => {
 // Pick amount, X2, REPEAT, etc
 const PlaceBetModule = () => {
   const [ActiveBalance, SetActiveBalance] = useState(
-    balanceStore.getActiveBalance()
+    userStore.getActiveBalance()
   );
 
   const onBalanceUpdated = () => {
-    SetActiveBalance(balanceStore.getActiveBalance());
+    SetActiveBalance(userStore.getActiveBalance());
   };
   useEffect(() => {
-    balanceStore.addChangeListener(
-      ActionTypes.BALANCE_UPDATED,
-      onBalanceUpdated
-    );
-    balanceStore.addChangeListener(
+    userStore.addChangeListener(ActionTypes.BALANCE_UPDATED, onBalanceUpdated);
+    userStore.addChangeListener(
       ActionTypes.BALANCE_ACTIVE_CURRENCY_CHANGED,
       onBalanceUpdated
     );
     return () => {
-      balanceStore.removeChangeListener(
+      userStore.removeChangeListener(
         ActionTypes.BALANCE_UPDATED,
         onBalanceUpdated
       );
-      balanceStore.removeChangeListener(
+      userStore.removeChangeListener(
         ActionTypes.BALANCE_ACTIVE_CURRENCY_CHANGED,
         onBalanceUpdated
       );

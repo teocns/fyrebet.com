@@ -19,10 +19,10 @@ import Currencies from "../constants/Currencies";
 import { useState } from "react";
 import sessionStore from "../store/session";
 
-import * as balanceActions from "../actions/balance";
+import * as userActions from "../actions/user";
 
 import Rate from "./rate";
-import balanceStore from "../store/balance";
+import userStore from "../store/user";
 
 import * as Icons from "@material-ui/icons/";
 
@@ -63,10 +63,10 @@ const CurrencySelect = () => {
 
   const [IsOpen, setIsOpen] = useState(false);
 
-  const [balances, setBalances] = useState(balanceStore.getBalance());
+  const [balances, setBalances] = useState(userStore.getBalance());
 
   const onBalanceUpdated = () => {
-    setBalances(balanceStore.getBalance());
+    setBalances(userStore.getBalance());
   };
 
   const onShouldRatesBeUSDChanged = () => {
@@ -74,29 +74,29 @@ const CurrencySelect = () => {
   };
 
   useEffect(() => {
-    balanceStore.addChangeListener(
-      ActionTypes.BALANCE_UPDATED,
+    userStore.addChangeListener(
+      ActionTypes.User.BALANCE_UPDATED,
       onBalanceUpdated
     );
-    balanceStore.addChangeListener(
-      ActionTypes.BALANCE_ACTIVE_CURRENCY_CHANGED,
+    userStore.addChangeListener(
+      ActionTypes.User.BALANCE_ACTIVE_CURRENCY_CHANGED,
       onActiveBalanceChange
     );
     ratesStore.addChangeListener(
-      ActionTypes.RATES_SHOULD_DISPLAY_USD,
+      ActionTypes.Rates.SHOULD_DISPLAY_USD,
       onShouldRatesBeUSDChanged
     );
     return () => {
-      balanceStore.removeChangeListener(
-        ActionTypes.BALANCE_UPDATED,
+      userStore.removeChangeListener(
+        ActionTypes.User.BALANCE_UPDATED,
         onBalanceUpdated
       );
-      balanceStore.removeChangeListener(
-        ActionTypes.BALANCE_ACTIVE_CURRENCY_CHANGED,
+      userStore.removeChangeListener(
+        ActionTypes.User.BALANCE_ACTIVE_CURRENCY_CHANGED,
         onActiveBalanceChange
       );
       ratesStore.removeChangeListener(
-        ActionTypes.RATES_SHOULD_DISPLAY_USD,
+        ActionTypes.Rates.SHOULD_DISPLAY_USD,
         onShouldRatesBeUSDChanged
       );
     };
@@ -113,13 +113,13 @@ const CurrencySelect = () => {
   };
 
   const onActiveBalanceChange = () => {
-    setSelectedCurrency(balanceStore.getActiveBalance().shortCode);
+    setSelectedCurrency(userStore.getActiveBalance().shortCode);
   };
 
   const changeCurrency = (event) => {
     const shortCode = event.target.value;
     if (shortCode in Currencies) {
-      balanceActions.changeActiveBalance(shortCode);
+      userActions.changeActiveBalance(shortCode);
     }
   };
   if (!balances) {

@@ -127,27 +127,27 @@ const sessionStore = new SessionStore();
 sessionStore.dispatchToken = dispatcher.register((event) => {
   let willEmitChange = true;
   switch (event.actionType) {
-    case ActionTypes.SESSION_USER_AVATAR_CHANGED:
+    case ActionTypes.Session.USER_AVATAR_CHANGED:
       sessionStore.updateAvatar(event.data.avatar);
       break;
-    case ActionTypes.SESSION_USER_DATA_RECEIVED:
+    case ActionTypes.Session.USER_DATA_RECEIVED:
       sessionStore.setUser(event.data.user);
       break;
 
-    case ActionTypes.SESSION_AUTHENTICATION_TOKEN_RECEIVED:
+    case ActionTypes.Session.AUTHENTICATION_TOKEN_RECEIVED:
       sessionStore.setAuthenticationToken(event.data);
       break;
-    case ActionTypes.SESSION_ID_RECEIVED:
+    case ActionTypes.Session.ID_RECEIVED:
       sessionStore.storeSessionId({ sessionId: event.data.sessionId });
       break;
 
-    case ActionTypes.SESSION_USER_LOGOUT:
+    case ActionTypes.Session.USER_LOGOUT:
       sessionStore.setAuthenticationToken(undefined);
       break;
-    case ActionTypes.AUTHENTICATION_FAILED:
+    case ActionTypes.Session.AUTHENTICATION_FAILED:
       sessionStore.onAuthenticationFailed();
       break;
-    case ActionTypes.API_SUCCESS:
+    case ActionTypes.Session.API_SUCCESS:
       // Snackbar component will subscribe to this
       setTimeout(() => {
         dispatcher.dispatch({
