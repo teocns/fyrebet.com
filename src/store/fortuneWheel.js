@@ -113,19 +113,18 @@ const fortuneWheelStore = new FortuneWheelStore();
 fortuneWheelStore.dispatchToken = dispatcher.register((action) => {
   let willEmitChange = false;
   switch (action.actionType) {
-    case ActionTypes.GAME_FORTUNE_WHEEL_USER_BET:
+    case ActionTypes.FortuneWheel.USER_BET:
       fortuneWheelStore.betReceived(action.data.bet);
       break;
-    case ActionTypes.GAME_FORTUNE_WHEEL_STATUS:
+    case ActionTypes.FortuneWheel.STATUS:
       fortuneWheelStore.setCurrentRound(action.data.round);
       fortuneWheelStore.setBets(action.data.mBets);
       fortuneWheelStore.setHistory(action.data.history);
-
       break;
-    case ActionTypes.GAME_FORTUNE_WHEEL_ROUND_BEGIN:
+    case ActionTypes.FortuneWheel.ROUND_BEGIN:
       fortuneWheelStore.setCurrentRound(action.data.round);
       break;
-    case ActionTypes.GAME_FORTUNE_WHEEL_ROUND_DRAW:
+    case ActionTypes.FortuneWheel.ROUND_DRAW:
       fortuneWheelStore.setCurrentRound(action.data.round);
       break;
     default:

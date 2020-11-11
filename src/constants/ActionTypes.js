@@ -5,6 +5,7 @@ import ChatActionTypes from "./ActionTypes/Chat";
 import UserActionTypes from "./ActionTypes/User";
 import RatesActionTypes from "./ActionTypes/Rates";
 import UiActionTypes from "./ActionTypes/UI";
+import FortuneWheelActionTypes from "./ActionTypes/FortuneWheel";
 
 const ActionTypes = {
   JackpotRoulette: JackpotRouletteActionTypes,
@@ -13,6 +14,7 @@ const ActionTypes = {
   User: UserActionTypes,
   Rates: RatesActionTypes,
   UI: UiActionTypes,
+  FortuneWheel: FortuneWheelActionTypes,
 };
 
 const _ActionTypes = keyMirror({

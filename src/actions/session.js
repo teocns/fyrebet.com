@@ -55,7 +55,7 @@ export async function userAuthenticate({ email, password }) {
 
 export function onAuthenticationFailed() {
   dispatcher.dispatch({
-    actionType: ActionTypes.AUTHENTICATION_FAILED,
+    actionType: ActionTypes.Session.AUTHENTICATION_FAILED,
   });
 }
 
@@ -76,7 +76,7 @@ export function onInitialStatusReceived(status) {
   // TODO: move in rates actions
   if ("rates" in status) {
     dispatcher.dispatch({
-      actionType: ActionTypes.RATES_UPDATED,
+      actionType: ActionTypes.Rates.UPDATED,
       data: {
         rates: status.rates,
       },
@@ -101,7 +101,7 @@ export function onUserDataReceived(userData) {
 
 export function onApiError(Error) {
   dispatcher.dispatch({
-    actionType: ActionTypes.UI_SHOW_SNACKBAR,
+    actionType: ActionTypes.UI.SHOW_SNACKBAR,
     data: { message: Error.toString(), severity: "error" },
   });
 }

@@ -104,7 +104,6 @@ const JackpotRouletteView = ({ threadUUID }) => {
     );
     jackpotRouletteActions.joinThread();
     return () => {
-      jackpotRouletteActions.leaveThread();
       jackpotRouletteStore.removeChangeListener(
         ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_NEW,
         onRoundBegin
@@ -113,6 +112,7 @@ const JackpotRouletteView = ({ threadUUID }) => {
         ActionTypes.GAME_JACKPOT_ROULETTE_ROUND_DRAW,
         onRoundClose
       );
+      jackpotRouletteActions.leaveThread();
     };
   });
 

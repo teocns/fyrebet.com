@@ -169,6 +169,16 @@ class JackpotRouletteStore extends EventEmitter {
     }
     return this.getThread(this.#activeThreadUUID);
   }
+
+  /**
+   * @param {JackpotRouletteRound} round
+   */
+  storeRound(round) {
+    const thread = this.getThread(round.threadUUID);
+    if (thread) {
+      thread.assignRound(round); // Takes care of everything else.
+    }
+  }
 }
 
 const jackpotRouletteStore = new JackpotRouletteStore();
@@ -176,20 +186,20 @@ const jackpotRouletteStore = new JackpotRouletteStore();
 jackpotRouletteStore.dispatchToken = dispatcher.register((action) => {
   let willEmitChange = true;
   switch (action.actionType) {
-    case ActionTypes.ROUND_NEW:
-      console.log("jackpotRouletteStore.storeNewRound(action.data.round)");
-      //console.log(action.data.jackpotRouletteDraw);
-      jackpotRouletteStore.storeNewRound(action.data.jackpotRouletteRound);
+    case ActionTypes.JackpotRoulette.ROUND_NEW:
+      console.log("jackpotRouletteStore.storeRound(action.data.round)");
+      //console.log(action.data.jack  potRouletteDraw);
+      jackpotRouletteStore.storeRound(action.data.jackpotRouletteRound);
       break;
-    case ActionTypes.ROUND_DRAW:
+    case ActionTypes.JackpotRoulette.ROUND_DRAW:
       console.log("jackpotRouletteStore.storeRoundDraw(action.data.roundDraw)");
       console.log(action.data.jackpotRouletteDraw);
       jackpotRouletteStore.storeRoundDraw(action.data.jackpotRouletteDraw);
       break;
-    case ActionTypes.THREAD_CHANGE:
+    case ActionTypes.JackpotRoulette.THREAD_CHANGE:
       jackpotRouletteStore.setActiveThread(action.data.threadUUID);
       break;
-    case ActionTypes.THREADS_BRIEF_RECEIVED:
+    case ActionTypes.JackpotRoulette.THREADS_BRIEF_RECEIVED:
       // Store briefs
       action.data.threadBriefs.map((threadBrief) =>
         jackpotRouletteStore.storeBrief(threadBrief)

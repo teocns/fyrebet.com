@@ -71,11 +71,11 @@ const joinThread = (threadUUID) => {
     currentThreadSyncReceived
   );
 
-  socketSendMessage(SocketEvents.JACKPOT_ROULETTE_JOIN, threadUUID);
+  socketSendMessage(SocketEvents.JACKPOT_ROULETTE_THREAD_USER_JOIN, threadUUID);
 };
 
 const leaveThread = (threadUUID) => {
-  socketSendMessage(SocketEvents.JACKPOT_ROULETTE_LEAVE);
+  socketSendMessage(SocketEvents.JACKPOT_ROULETTE_THREAD_USER_LEAVE);
 };
 
 const requestThreadsBriefs = () => {
