@@ -75,9 +75,19 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const JackpotRouletteView = ({ threadUUID }) => {
+  if (!threadUUID){
+    throw "JackpoRouletteView invoked with no threadUUID argument.";
+  }
+  const activeThread = jackpotRouletteStore.getActiveThread();
+
+  if (!activeThread || activeThread.threadUUID !== threadUUID){
+    jackpotRouletteActions.setActiveThread(threadUUID);
+  }
   const [ActiveThread, setActiveThread] = useState(
-    jackpotRouletteStore.getActiveThread()
+    
   );
+
+  
   const [BetsOpen, setBetsOpen] = useState(false);
 
   const classes = useStyles();
@@ -118,7 +128,7 @@ const JackpotRouletteView = ({ threadUUID }) => {
 
   if (!threadUUID) {
     // Get public thread of choice
-    const thread = jackpotRouletteStore.getPublicThreadOfChoice();
+    const thread = jackpotRouletteStore.getDefaultThreadBrief();
     if (!threadUUID) {
       return <Typography>Game unavailable.</Typography>;
     }

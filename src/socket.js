@@ -13,6 +13,7 @@ var socketInstance = initialize();
 
 export function initialize() {
   // Should be called once, maybe
+
   const socket = io.connect(EnvironmentConstants.ENDPOINT_SOCKET, {
     reconnect: true,
     secure: true,
@@ -20,14 +21,11 @@ export function initialize() {
     transports: ["websocket"],
   });
 
-  // Bind listeners
-
   bindSessionSocketHandler(socket);
   bindChatSocketHandler(socket);
   bindRatesSocketHandler(socket);
   bindFortuneWheelHandler(socket);
   bindBalanceHandler(socket);
-
   return socket;
 }
 export function sendMessage(event, data) {

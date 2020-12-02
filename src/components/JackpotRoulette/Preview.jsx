@@ -64,18 +64,15 @@ const threadBrief = new JackpotRouletteThreadBrief({
   drawTimestamp: gameDrawTimestamp,
 });
 
-const JackpotRoulettePreview = ({ threadUUID, isLoading = true }) => {
+/**
+ * Component assumes that
+ */
+const JackpotRoulettePreview = ({ threadUUID, isLoading = false }) => {
   const classes = useStyles();
 
-  // const threadBrief = jackpotRouletteStore.getThreadBrief(threadUUID);
-
-  // const [ThreadBrief, setThreadBrief] = useState(
-  //   jackpotRouletteStore.getThreadBrief(
-  //     threadUUID
-  //       ? jackpotRouletteStore.getThreadBrief(threadUUID)
-  //       : jackpotRouletteStore.getPublicThreadOfChoice()
-  //   )
-  // );
+  const [ThreadBrief, setThreadBrief] = useState(
+    jackpotRouletteStore.getThreadBrief(threadUUID)
+  );
 
   // if (!ThreadBrief) {
   //   // Force loading as we don't have the thread brief

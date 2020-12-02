@@ -8,6 +8,7 @@ import SocketEvents, {
   JACKPOT_ROULETTE_THREADS_SYNC,
 } from "../constants/SocketEvents";
 import jackpotRouletteStore from "../store/jackpotRoulette";
+import chatStore from "../store/chat";
 // const currentRound = new JackpotRouletteRound({
 //     createdTimestamp: parseInt(Date.now() / 1000),
 //     drawTimestamp: parseInt(Date.now() / 1000) + 30,
@@ -53,7 +54,7 @@ const placeBet = (jackpotRouletteBet) => {
   });
 };
 
-const joinThread = (threadUUID) => {
+const setActiveThread = (threadUUID) => {
   const currentThreadSyncReceived = (threadSyncData) => {
     if (threadSyncData.threadUUID === threadUUID) {
       // We received the thread sync we were waiting for;
@@ -74,8 +75,12 @@ const joinThread = (threadUUID) => {
   socketSendMessage(SocketEvents.JACKPOT_ROULETTE_THREAD_USER_JOIN, threadUUID);
 };
 
-const leaveThread = (threadUUID) => {
-  socketSendMessage(SocketEvents.JACKPOT_ROULETTE_THREAD_USER_LEAVE);
+const leaveThread = () => {
+  // We get the active thread from the store
+  const threadUUID = jackpotRouletteStore.getActiveThread();
+  socketSendMessage(SocketEvents.JACKPOT_ROULETTE_THREAD_USER_LEAVE, {
+    threadUUID,
+  });
 };
 
 const requestThreadsBriefs = () => {
@@ -93,12 +98,34 @@ const threadsBriefReceived = (threads) => {
   });
 };
 
+// /**
+//  *
+//  * @param {string} threadUUID
+//  */
+// const setActiveThread = (threadUUID) => {
+
+//   // Check if we need to fetch the thread
+//   if (jackpotRouletteStore.requiresThreadSync(threadUUID)){
+//     // Do not dispatch THREAD_CHANGE now. Instead, request the thread data
+//     // Wait for the data to arrive
+//     // Then fire THREAD_CHANGE
+
+//     // Register a temporary socket
+//     socketSendMessage(SocketEvents.JACKPOT_ROULETTE_THREAD_SYNC, {threadUUID});
+
+//   }
+//   dispatcher.dispatch({
+//     actionType: ActionTypes.THREAD_CHANGE,
+//     data: { threadUUID },
+//   });
+// };
+
 export default {
   leaveThread,
   requestThreadsBriefs,
   threadsBriefReceived,
   placeBet,
-  joinThread,
   onRoundDraw,
   onNewRoundBegin,
+  setActiveThread,
 };

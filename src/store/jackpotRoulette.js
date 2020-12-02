@@ -152,7 +152,7 @@ class JackpotRouletteStore extends EventEmitter {
     this.#is_subscribed_to_thread_briefs_updates = true;
   }
 
-  getPublicThreadOfChoice() {
+  getDefaultThreadBrief() {
     if (!this.#default_thread) {
       return undefined;
     }

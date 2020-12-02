@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 import AppContent from "./components/app-content";
-import AppPreload from "./components/app-preload";
 
 import ActionTypes from "./constants/ActionTypes";
 

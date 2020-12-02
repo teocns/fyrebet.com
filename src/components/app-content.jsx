@@ -16,6 +16,9 @@ import ActionTypes from "../constants/ActionTypes";
 import AppDrawer from "./AppDrawer";
 import UserInteractionModal from "./user/user-interaction-modal";
 import { Backdrop, Paper } from "@material-ui/core";
+
+import AppPreload from "./Preload";
+
 const useStyles = makeStyles((theme) => ({
   appContent: {
     flex: 1,
@@ -27,6 +30,11 @@ const useStyles = makeStyles((theme) => ({
   },
   appView: {
     flex: 1,
+  },
+  preload: {
+    width: "100vw",
+    height: "100vh",
+    position: "fixed",
   },
 }));
 export default function AppContent(props) {
@@ -67,6 +75,7 @@ export default function AppContent(props) {
   });
   return (
     <div className={classes.appContent}>
+      <AppPreload />
       <AppDrawer />
       <div
         style={{

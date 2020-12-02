@@ -52,6 +52,33 @@ const GamesPreviewView = (props) => {
 
   // We gotta make sure that thread briefs are up to date.
 
+  const previewsDataAggregator = {
+    JACKPOT_ROULETTE: {
+      threadUUID: undefined,
+      isLoading: undefined,
+      isReady: false,
+    },
+  };
+
+  const getJackpotRouletteThreadPreview = () => {
+    // Pick which thread to show on preview
+    let defaultThreadBrief = jackpotRouletteStore.getDefaultThreadBrief();
+    if (defaultThreadBrief) {
+      // Loaded!
+      previewsDataAggregator.JACKPOT_ROULETTE.isReady = true;
+      previewsDataAggregator.JACKPOT_ROULETTE.threadUUID =
+        defaultThreadBrief.threadUUID;
+    }
+  };
+
+  getJackpotRouletteThreadPreview();
+
+  const isLoading = !Object.values(previewsDataAggregator).every(
+    (item) => !!item.isReady
+  );
+
+  console.log("isLoading", isLoading);
+  console.log(previewsDataAggregator);
   return (
     <div className={classes.root}>
       <Paper
